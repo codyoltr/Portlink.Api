@@ -7,6 +7,7 @@ public class NotificationResponse
     public string Title { get; set; } = string.Empty;
     public string? Body { get; set; }
     public bool IsRead { get; set; }
-    public Dictionary<string, string>? Data { get; set; }
+    public string? Data { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+

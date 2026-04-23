@@ -1,0 +1,308 @@
+2026-04-23 12:56:26.703 +03:00 [ERR] An error occurred using the connection to database 'portlink_db' on server 'tcp://localhost:5432'.
+2026-04-23 12:57:00.201 +03:00 [ERR] An error occurred using the connection to database 'portlink_db' on server 'tcp://localhost:5432'.
+2026-04-23 12:57:00.664 +03:00 [INF] Executed DbCommand (86ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE DATABASE portlink_db;
+2026-04-23 12:57:00.750 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2026-04-23 12:57:00.762 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2026-04-23 12:57:00.765 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2026-04-23 12:57:00.775 +03:00 [INF] Applying migration '20260423095524_InitialCreate'.
+2026-04-23 12:57:00.835 +03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Ports" (
+    "Id" uuid NOT NULL,
+    "Code" character varying(20) NOT NULL,
+    "Name" character varying(300) NOT NULL,
+    "Region" character varying(100),
+    "Coordinates" text,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_Ports" PRIMARY KEY ("Id")
+);
+2026-04-23 12:57:00.840 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "ServiceCategories" (
+    "Id" uuid NOT NULL,
+    "Code" character varying(50) NOT NULL,
+    "Title" character varying(200) NOT NULL,
+    "SubServices" text[] NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_ServiceCategories" PRIMARY KEY ("Id")
+);
+2026-04-23 12:57:00.844 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Users" (
+    "Id" uuid NOT NULL,
+    "Email" character varying(255) NOT NULL,
+    "PasswordHash" character varying(255) NOT NULL,
+    "Role" character varying(30) NOT NULL,
+    "IsVerified" boolean NOT NULL,
+    "IsActive" boolean NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    "UpdatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_Users" PRIMARY KEY ("Id")
+);
+2026-04-23 12:57:00.848 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "AgentProfiles" (
+    "Id" uuid NOT NULL,
+    "UserId" uuid NOT NULL,
+    "FullName" character varying(150) NOT NULL,
+    "Phone" character varying(30),
+    "CompanyName" character varying(200) NOT NULL,
+    "Country" character varying(100),
+    "City" character varying(100),
+    "TaxNumber" character varying(50),
+    "LogoUrl" character varying(500),
+    "Rating" numeric(3,2) NOT NULL,
+    "TotalJobs" integer NOT NULL,
+    "IsVerified" boolean NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    "UpdatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_AgentProfiles" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_AgentProfiles_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
+);
+2026-04-23 12:57:00.851 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Notifications" (
+    "Id" uuid NOT NULL,
+    "UserId" uuid NOT NULL,
+    "Type" character varying(50) NOT NULL,
+    "Title" character varying(300) NOT NULL,
+    "Body" text,
+    "IsRead" boolean NOT NULL,
+    "Data" jsonb,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_Notifications" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_Notifications_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
+);
+2026-04-23 12:57:00.853 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "RefreshTokens" (
+    "Id" uuid NOT NULL,
+    "UserId" uuid NOT NULL,
+    "TokenHash" character varying(500) NOT NULL,
+    "ExpiresAt" timestamp with time zone NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_RefreshTokens" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_RefreshTokens_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
+);
+2026-04-23 12:57:00.855 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "SubcontractorProfiles" (
+    "Id" uuid NOT NULL,
+    "UserId" uuid NOT NULL,
+    "FullName" character varying(150) NOT NULL,
+    "Phone" character varying(30),
+    "CompanyName" character varying(200) NOT NULL,
+    "Country" character varying(100),
+    "City" character varying(100),
+    "TaxNumber" character varying(50),
+    "LogoUrl" character varying(500),
+    "Rating" numeric(3,2) NOT NULL,
+    "TotalCompleted" integer NOT NULL,
+    "IsVerified" boolean NOT NULL,
+    "ExpertiseTags" text[] NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    "UpdatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_SubcontractorProfiles" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_SubcontractorProfiles_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
+);
+2026-04-23 12:57:00.858 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "JobListings" (
+    "Id" uuid NOT NULL,
+    "AgentId" uuid NOT NULL,
+    "Title" character varying(300) NOT NULL,
+    "ListingType" character varying(30) NOT NULL,
+    "ShipName" character varying(200),
+    "PortCode" character varying(20),
+    "PortName" character varying(300),
+    "Location" character varying(300),
+    "Category" character varying(100) NOT NULL,
+    "SelectedServices" text[] NOT NULL,
+    "Eta" timestamp with time zone,
+    "NeedText" text,
+    "BudgetMin" numeric(15,2),
+    "BudgetMax" numeric(15,2),
+    "Currency" character varying(10) NOT NULL,
+    "Status" character varying(20) NOT NULL,
+    "OfferCount" integer NOT NULL,
+    "Deadline" timestamp with time zone,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    "UpdatedAt" timestamp with time zone NOT NULL,
+    "PortId" uuid,
+    CONSTRAINT "PK_JobListings" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_JobListings_AgentProfiles_AgentId" FOREIGN KEY ("AgentId") REFERENCES "AgentProfiles" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_JobListings_Ports_PortId" FOREIGN KEY ("PortId") REFERENCES "Ports" ("Id")
+);
+2026-04-23 12:57:00.861 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "JobFiles" (
+    "Id" uuid NOT NULL,
+    "JobId" uuid NOT NULL,
+    "FileName" character varying(300) NOT NULL,
+    "FileUrl" character varying(500) NOT NULL,
+    "FileSize" bigint,
+    "FileType" character varying(20),
+    "UploadedBy" uuid NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_JobFiles" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_JobFiles_JobListings_JobId" FOREIGN KEY ("JobId") REFERENCES "JobListings" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_JobFiles_Users_UploadedBy" FOREIGN KEY ("UploadedBy") REFERENCES "Users" ("Id") ON DELETE RESTRICT
+);
+2026-04-23 12:57:00.863 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Offers" (
+    "Id" uuid NOT NULL,
+    "JobId" uuid NOT NULL,
+    "SubcontractorId" uuid NOT NULL,
+    "Price" numeric(15,2) NOT NULL,
+    "Currency" character varying(10) NOT NULL,
+    "EstimatedDays" integer,
+    "CoverNote" text,
+    "Status" character varying(20) NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    "UpdatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_Offers" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_Offers_JobListings_JobId" FOREIGN KEY ("JobId") REFERENCES "JobListings" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_Offers_SubcontractorProfiles_SubcontractorId" FOREIGN KEY ("SubcontractorId") REFERENCES "SubcontractorProfiles" ("Id") ON DELETE CASCADE
+);
+2026-04-23 12:57:00.865 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "AssignedJobs" (
+    "Id" uuid NOT NULL,
+    "JobId" uuid NOT NULL,
+    "OfferId" uuid NOT NULL,
+    "AgentId" uuid NOT NULL,
+    "SubcontractorId" uuid NOT NULL,
+    "Progress" integer NOT NULL,
+    "Status" character varying(30) NOT NULL,
+    "StartDate" date,
+    "DueDate" date,
+    "CompletedAt" timestamp with time zone,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    "UpdatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_AssignedJobs" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_AssignedJobs_AgentProfiles_AgentId" FOREIGN KEY ("AgentId") REFERENCES "AgentProfiles" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_AssignedJobs_JobListings_JobId" FOREIGN KEY ("JobId") REFERENCES "JobListings" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_AssignedJobs_Offers_OfferId" FOREIGN KEY ("OfferId") REFERENCES "Offers" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_AssignedJobs_SubcontractorProfiles_SubcontractorId" FOREIGN KEY ("SubcontractorId") REFERENCES "SubcontractorProfiles" ("Id") ON DELETE RESTRICT
+);
+2026-04-23 12:57:00.867 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "JobLogs" (
+    "Id" uuid NOT NULL,
+    "AssignedJobId" uuid NOT NULL,
+    "CreatedBy" uuid NOT NULL,
+    "Title" character varying(300) NOT NULL,
+    "Description" text,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_JobLogs" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_JobLogs_AssignedJobs_AssignedJobId" FOREIGN KEY ("AssignedJobId") REFERENCES "AssignedJobs" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_JobLogs_Users_CreatedBy" FOREIGN KEY ("CreatedBy") REFERENCES "Users" ("Id") ON DELETE RESTRICT
+);
+2026-04-23 12:57:00.869 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "JobReports" (
+    "Id" uuid NOT NULL,
+    "AssignedJobId" uuid NOT NULL,
+    "UploadedBy" uuid NOT NULL,
+    "FileName" character varying(300) NOT NULL,
+    "FileUrl" character varying(500) NOT NULL,
+    "FileSize" bigint,
+    "FileType" character varying(20),
+    "CreatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_JobReports" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_JobReports_AssignedJobs_AssignedJobId" FOREIGN KEY ("AssignedJobId") REFERENCES "AssignedJobs" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_JobReports_Users_UploadedBy" FOREIGN KEY ("UploadedBy") REFERENCES "Users" ("Id") ON DELETE RESTRICT
+);
+2026-04-23 12:57:00.872 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "Messages" (
+    "Id" uuid NOT NULL,
+    "AssignedJobId" uuid,
+    "SenderId" uuid NOT NULL,
+    "ReceiverId" uuid NOT NULL,
+    "Content" text NOT NULL,
+    "IsRead" boolean NOT NULL,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_Messages" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_Messages_AssignedJobs_AssignedJobId" FOREIGN KEY ("AssignedJobId") REFERENCES "AssignedJobs" ("Id") ON DELETE SET NULL,
+    CONSTRAINT "FK_Messages_Users_ReceiverId" FOREIGN KEY ("ReceiverId") REFERENCES "Users" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Messages_Users_SenderId" FOREIGN KEY ("SenderId") REFERENCES "Users" ("Id") ON DELETE RESTRICT
+);
+2026-04-23 12:57:00.874 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE "WalletTransactions" (
+    "Id" uuid NOT NULL,
+    "SubcontractorId" uuid NOT NULL,
+    "AssignedJobId" uuid,
+    "Type" character varying(30) NOT NULL,
+    "Amount" numeric(15,2) NOT NULL,
+    "Currency" character varying(10) NOT NULL,
+    "Status" character varying(20) NOT NULL,
+    "Description" text,
+    "CreatedAt" timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_WalletTransactions" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_WalletTransactions_AssignedJobs_AssignedJobId" FOREIGN KEY ("AssignedJobId") REFERENCES "AssignedJobs" ("Id") ON DELETE SET NULL,
+    CONSTRAINT "FK_WalletTransactions_SubcontractorProfiles_SubcontractorId" FOREIGN KEY ("SubcontractorId") REFERENCES "SubcontractorProfiles" ("Id") ON DELETE RESTRICT
+);
+2026-04-23 12:57:00.874 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_AgentProfiles_UserId" ON "AgentProfiles" ("UserId");
+2026-04-23 12:57:00.875 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_AssignedJobs_AgentId" ON "AssignedJobs" ("AgentId");
+2026-04-23 12:57:00.876 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_AssignedJobs_JobId" ON "AssignedJobs" ("JobId");
+2026-04-23 12:57:00.878 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_AssignedJobs_OfferId" ON "AssignedJobs" ("OfferId");
+2026-04-23 12:57:00.885 +03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_AssignedJobs_SubcontractorId" ON "AssignedJobs" ("SubcontractorId");
+2026-04-23 12:57:00.886 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_JobFiles_JobId" ON "JobFiles" ("JobId");
+2026-04-23 12:57:00.887 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_JobFiles_UploadedBy" ON "JobFiles" ("UploadedBy");
+2026-04-23 12:57:00.888 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_JobListings_AgentId" ON "JobListings" ("AgentId");
+2026-04-23 12:57:00.889 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_JobListings_PortId" ON "JobListings" ("PortId");
+2026-04-23 12:57:00.890 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_JobLogs_AssignedJobId" ON "JobLogs" ("AssignedJobId");
+2026-04-23 12:57:00.891 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_JobLogs_CreatedBy" ON "JobLogs" ("CreatedBy");
+2026-04-23 12:57:00.892 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_JobReports_AssignedJobId" ON "JobReports" ("AssignedJobId");
+2026-04-23 12:57:00.892 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_JobReports_UploadedBy" ON "JobReports" ("UploadedBy");
+2026-04-23 12:57:00.893 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Messages_AssignedJobId" ON "Messages" ("AssignedJobId");
+2026-04-23 12:57:00.894 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Messages_ReceiverId" ON "Messages" ("ReceiverId");
+2026-04-23 12:57:00.894 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Messages_SenderId" ON "Messages" ("SenderId");
+2026-04-23 12:57:00.895 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Notifications_UserId" ON "Notifications" ("UserId");
+2026-04-23 12:57:00.895 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Offers_JobId_SubcontractorId" ON "Offers" ("JobId", "SubcontractorId");
+2026-04-23 12:57:00.896 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_Offers_SubcontractorId" ON "Offers" ("SubcontractorId");
+2026-04-23 12:57:00.896 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Ports_Code" ON "Ports" ("Code");
+2026-04-23 12:57:00.897 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_RefreshTokens_UserId" ON "RefreshTokens" ("UserId");
+2026-04-23 12:57:00.898 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_ServiceCategories_Code" ON "ServiceCategories" ("Code");
+2026-04-23 12:57:00.898 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_SubcontractorProfiles_UserId" ON "SubcontractorProfiles" ("UserId");
+2026-04-23 12:57:00.899 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX "IX_Users_Email" ON "Users" ("Email");
+2026-04-23 12:57:00.899 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_WalletTransactions_AssignedJobId" ON "WalletTransactions" ("AssignedJobId");
+2026-04-23 12:57:00.900 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX "IX_WalletTransactions_SubcontractorId" ON "WalletTransactions" ("SubcontractorId");
+2026-04-23 12:57:00.901 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20260423095524_InitialCreate', '9.0.4');
+2026-04-23 12:57:00.918 +03:00 [INF] Veritabanı migration tamamlandı.
+2026-04-23 12:57:00.922 +03:00 [INF] Portlink API başlatıldı.
+2026-04-23 12:57:00.928 +03:00 [INF] User profile is available. Using '/home/serif/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2026-04-23 12:57:00.944 +03:00 [INF] Creating key {19a3fba5-c78a-44be-b59f-df22f02471fc} with creation date 2026-04-23 09:57:00Z, activation date 2026-04-23 09:57:00Z, and expiration date 2026-07-22 09:57:00Z.
+2026-04-23 12:57:00.947 +03:00 [WRN] No XML encryptor configured. Key {19a3fba5-c78a-44be-b59f-df22f02471fc} may be persisted to storage in unencrypted form.
+2026-04-23 12:57:00.948 +03:00 [INF] Writing data to file '/home/serif/.aspnet/DataProtection-Keys/key-19a3fba5-c78a-44be-b59f-df22f02471fc.xml'.
+2026-04-23 12:57:00.971 +03:00 [WRN] The WebRootPath was not found: /home/serif/Masaüstü/Portlink.Api/wwwroot. Static files may be unavailable.
+2026-04-23 12:57:00.999 +03:00 [INF] Now listening on: http://localhost:5265
+2026-04-23 12:57:01.000 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-04-23 12:57:01.000 +03:00 [INF] Hosting environment: Development
+2026-04-23 12:57:01.000 +03:00 [INF] Content root path: /home/serif/Masaüstü/Portlink.Api

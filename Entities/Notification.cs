@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 
 namespace Portlink.Api.Entities;
 
@@ -25,8 +24,8 @@ public class Notification
 
     public bool IsRead { get; set; } = false;
 
-    /// <summary>İlgili entity id vb. — JSON dict</summary>
-    public Dictionary<string, string>? Data { get; set; }
+    /// <summary>İlgili entity id vb. — JSON string (jsonb kolonu)</summary>
+    public string? Data { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
