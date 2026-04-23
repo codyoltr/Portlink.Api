@@ -1,0 +1,6 @@
+@Portlink.Api_HostAddress = http://localhost:5265
+
+GET {{Portlink.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

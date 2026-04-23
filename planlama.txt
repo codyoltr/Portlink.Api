@@ -1,0 +1,779 @@
+================================================================================
+  PORTLINK - BACKEND PLANLAMA DOKÜMANI
+  Tarih: 2026-04-23
+  Versiyon: 1.0
+================================================================================
+
+1. GENEL BAKIŞ
+================================================================================
+PortLink, denizcilik sektöründe çalışan gemi acentelerini (agents) ile taşeron
+firmaları (subcontractors) bir araya getiren bir B2B SaaS iş platformudur.
+Acente kendi gemileri için hizmet ilanları oluşturur; taşeronlar bu ilanlara
+teklif verir; anlaşma yapılır ve iş takip edilir.
+
+2. KULLANICI ROLLERİ (Frontend Mock'tan Çıkarılan)
+================================================================================
+  1. AGENT  (Gemi Acentesi)
+     - Firma/şirket hesabı
+     - İlan oluşturur (subcontractor / agency-partnership)
+     - Gelen teklifleri inceler ve kabul/red eder
+     - Atanan taşeronların işlerini takip eder
+     - Dosya/rapor yönetimi yapar
+     - Mesajlaşma özelliği kullanır
+
+  2. SUBCONTRACTOR (Taşeron Firma)
+     - Firma/şirket hesabı
+     - Yayındaki ilanlara teklif verir
+     - Aktif işlerini takip eder
+     - Finans / hakediş takibi yapar
+     - Performans metrikleri görür
+
+  3. CAPTAIN (Kaptan) — (Mevcut ama ileride geliştirilecek)
+
+3. VERİTABANI TABLOLARI (PostgreSQL)
+================================================================================
+
+  [TABLO 1] users
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  email            VARCHAR(255) UNIQUE NOT NULL
+  password_hash    VARCHAR(255) NOT NULL
+  role             VARCHAR(30) NOT NULL  -- 'agent' | 'subcontractor' | 'captain'
+  is_verified      BOOLEAN DEFAULT FALSE
+  is_active        BOOLEAN DEFAULT TRUE
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 2] agent_profiles
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id          UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  full_name        VARCHAR(150) NOT NULL
+  phone            VARCHAR(30)
+  company_name     VARCHAR(200) NOT NULL
+  country          VARCHAR(100)
+  city             VARCHAR(100)
+  tax_number       VARCHAR(50)
+  logo_url         VARCHAR(500)
+  rating           NUMERIC(3,2) DEFAULT 0.0
+  total_jobs       INT DEFAULT 0
+  is_verified      BOOLEAN DEFAULT FALSE
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 3] subcontractor_profiles
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id          UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  full_name        VARCHAR(150) NOT NULL
+  phone            VARCHAR(30)
+  company_name     VARCHAR(200) NOT NULL
+  country          VARCHAR(100)
+  city             VARCHAR(100)
+  tax_number       VARCHAR(50)
+  logo_url         VARCHAR(500)
+  rating           NUMERIC(3,2) DEFAULT 0.0
+  total_completed  INT DEFAULT 0
+  is_verified      BOOLEAN DEFAULT FALSE
+  expertise_tags   TEXT[]        -- ['Makine Bakımı', 'Elektrik', ...]
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 4] job_listings  (İlanlar)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  agent_id         UUID NOT NULL REFERENCES agent_profiles(id) ON DELETE CASCADE
+  title            VARCHAR(300) NOT NULL
+  listing_type     VARCHAR(30) NOT NULL  -- 'subcontractor' | 'agency-partnership'
+  ship_name        VARCHAR(200)
+  port_code        VARCHAR(20)           -- ports.json'daki code alanıyla eşleşir
+  port_name        VARCHAR(300)          -- ports.json'daki name
+  location         VARCHAR(300)          -- Serbest metin konum
+  category         VARCHAR(100) NOT NULL -- Liman İşlemleri | Teknik & Tamir...
+  selected_services TEXT[]               -- Seçilen alt hizmetler
+  eta              TIMESTAMPTZ           -- Gemi varış zamanı
+  need_text        TEXT
+  budget_min       NUMERIC(15,2)
+  budget_max       NUMERIC(15,2)
+  currency         VARCHAR(10) DEFAULT 'TRY'
+  status           VARCHAR(20) DEFAULT 'active'  -- active|reviewing|completed|cancelled
+  offer_count      INT DEFAULT 0          -- Denormalize sayaç (trigger ile güncellenir)
+  deadline         TIMESTAMPTZ
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 5] job_files  (İlana Ait Dosyalar)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  job_id           UUID NOT NULL REFERENCES job_listings(id) ON DELETE CASCADE
+  file_name        VARCHAR(300) NOT NULL
+  file_url         VARCHAR(500) NOT NULL   -- S3 / MinIO URL
+  file_size        INT                      -- Byte cinsinden
+  file_type        VARCHAR(20)              -- 'pdf' | 'image' | 'zip'
+  uploaded_by      UUID NOT NULL REFERENCES users(id)
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 6] offers  (Teklifler)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  job_id           UUID NOT NULL REFERENCES job_listings(id) ON DELETE CASCADE
+  subcontractor_id UUID NOT NULL REFERENCES subcontractor_profiles(id) ON DELETE CASCADE
+  price            NUMERIC(15,2) NOT NULL
+  currency         VARCHAR(10) DEFAULT 'TRY'
+  estimated_days   INT                       -- "3 Gün" gibi
+  cover_note       TEXT
+  status           VARCHAR(20) DEFAULT 'pending'  -- pending|accepted|rejected|withdrawn
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+  UNIQUE (job_id, subcontractor_id)          -- Her taşeron bir ilana bir teklif
+
+  [TABLO 7] assigned_jobs  (Kabul Edilmiş / Aktif İşler)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  job_id           UUID UNIQUE NOT NULL REFERENCES job_listings(id)
+  offer_id         UUID UNIQUE NOT NULL REFERENCES offers(id)
+  agent_id         UUID NOT NULL REFERENCES agent_profiles(id)
+  subcontractor_id UUID NOT NULL REFERENCES subcontractor_profiles(id)
+  progress         INT DEFAULT 0             -- 0-100 yüzde
+  status           VARCHAR(30) DEFAULT 'planning'
+                     -- planning | in_progress | review | completed
+  start_date       DATE
+  due_date         DATE
+  completed_at     TIMESTAMPTZ
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+  updated_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 8] job_logs  (Süreç Logları - Zaman Çizelgesi)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  assigned_job_id  UUID NOT NULL REFERENCES assigned_jobs(id) ON DELETE CASCADE
+  created_by       UUID NOT NULL REFERENCES users(id)
+  title            VARCHAR(300) NOT NULL
+  description      TEXT
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 9] job_reports  (Dosya/Rapor — Devam Eden İşe Ait)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  assigned_job_id  UUID NOT NULL REFERENCES assigned_jobs(id) ON DELETE CASCADE
+  uploaded_by      UUID NOT NULL REFERENCES users(id)
+  file_name        VARCHAR(300) NOT NULL
+  file_url         VARCHAR(500) NOT NULL
+  file_size        INT
+  file_type        VARCHAR(20)
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 10] messages  (Mesajlaşma)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  assigned_job_id  UUID REFERENCES assigned_jobs(id) ON DELETE SET NULL
+  sender_id        UUID NOT NULL REFERENCES users(id)
+  receiver_id      UUID NOT NULL REFERENCES users(id)
+  content          TEXT NOT NULL
+  is_read          BOOLEAN DEFAULT FALSE
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 11] notifications  (Bildirimler)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  type             VARCHAR(50) NOT NULL
+                     -- NEW_OFFER | OFFER_ACCEPTED | OFFER_REJECTED |
+                        NEW_MESSAGE | JOB_COMPLETED | REPORT_REQUESTED
+  title            VARCHAR(300) NOT NULL
+  body             TEXT
+  is_read          BOOLEAN DEFAULT FALSE
+  data             JSONB                   -- İlgili entity id vb.
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 12] ports  (Liman Referans Tablosu)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  code             VARCHAR(20) UNIQUE NOT NULL  -- TRALI-001
+  name             VARCHAR(300) NOT NULL
+  region           VARCHAR(100)                 -- İstanbul, İzmir, Mersin...
+  coordinates      POINT                        -- Harita için
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 13] service_categories  (Hizmet Kategorileri — Referans)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  code             VARCHAR(50) UNIQUE NOT NULL   -- 'port-operations'
+  title            VARCHAR(200) NOT NULL         -- 'Liman İşlemleri'
+  sub_services     TEXT[]                        -- Alt hizmet seçenekleri
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 14] wallet_transactions  (Finans / Hakediş)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  subcontractor_id UUID NOT NULL REFERENCES subcontractor_profiles(id)
+  assigned_job_id  UUID REFERENCES assigned_jobs(id)
+  type             VARCHAR(30)   -- 'earning' | 'pending' | 'withdrawal'
+  amount           NUMERIC(15,2) NOT NULL
+  currency         VARCHAR(10) DEFAULT 'TRY'
+  status           VARCHAR(20) DEFAULT 'pending'  -- pending | completed
+  description      TEXT
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+
+  [TABLO 15] refresh_tokens  (JWT Auth)
+  ─────────────────────────────────────────
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  user_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  token_hash       VARCHAR(500) NOT NULL
+  expires_at       TIMESTAMPTZ NOT NULL
+  created_at       TIMESTAMPTZ DEFAULT NOW()
+
+4. API ENDPOİNT LİSTESİ (RESTful)
+================================================================================
+
+  AUTH
+  ─────────────────────────────────────────
+  POST   /api/auth/register/agent           Acente kayıt
+  POST   /api/auth/register/subcontractor   Taşeron kayıt
+  POST   /api/auth/login                    Giriş → JWT döner
+  POST   /api/auth/logout                   Çıkış
+  POST   /api/auth/refresh                  Token yenileme
+  GET    /api/auth/me                       Mevcut kullanıcı profili
+
+  AGENT DASHBOARD
+  ─────────────────────────────────────────
+  GET    /api/agent/dashboard/stats         Aylık ilanlar, teklif sayıları
+  GET    /api/agent/jobs                    Kendi ilanları (filtrelenebilir)
+  POST   /api/agent/jobs                    Yeni ilan oluştur
+  GET    /api/agent/jobs/:id                İlan detayı
+  PUT    /api/agent/jobs/:id                İlan güncelle
+  DELETE /api/agent/jobs/:id                İlan sil
+  GET    /api/agent/jobs/:id/offers         Bir ilanın teklifleri
+  POST   /api/agent/jobs/:id/files          İlana dosya yükle
+  GET    /api/agent/assigned-jobs           Atanmış / devam eden işler
+  GET    /api/agent/assigned-jobs/:id       İş detayı
+  POST   /api/agent/assigned-jobs/:id/logs  Sürece log ekle
+  POST   /api/agent/assigned-jobs/:id/request-report   Taşerondan rapor iste
+
+  OFFER YÖNETİMİ (Agent)
+  ─────────────────────────────────────────
+  PUT    /api/agent/offers/:offerId/accept  Teklifi kabul et → assigned_job oluşur
+  PUT    /api/agent/offers/:offerId/reject  Teklifi reddet
+
+  SUBCONTRACTOR DASHBOARD
+  ─────────────────────────────────────────
+  GET    /api/subcontractor/dashboard/stats         Verilen teklif, aktif iş, kazanç
+  GET    /api/subcontractor/jobs                    Mevcut ilanları listele (pazar)
+  GET    /api/subcontractor/jobs/:id                İlan detayı
+  POST   /api/subcontractor/jobs/:id/offer          Teklif ver
+  PUT    /api/subcontractor/offers/:id/withdraw     Teklifi geri çek
+  GET    /api/subcontractor/offers                  Verdiğim teklifler
+  GET    /api/subcontractor/active-jobs             Aktif işlerim
+  GET    /api/subcontractor/active-jobs/:id         Aktif iş detayı
+  POST   /api/subcontractor/active-jobs/:id/reports Rapor/dosya yükle
+  GET    /api/subcontractor/wallet                  Finans özeti
+
+  MESAJLAŞMA
+  ─────────────────────────────────────────
+  GET    /api/messages/:assignedJobId       İş bazlı mesajları listele
+  POST   /api/messages/:assignedJobId       Mesaj gönder
+  PUT    /api/messages/:id/read             Okundu işaretle
+
+  BİLDİRİMLER
+  ─────────────────────────────────────────
+  GET    /api/notifications                 Bildirim listesi
+  PUT    /api/notifications/:id/read        Okundu işaretle
+  PUT    /api/notifications/read-all        Tümünü okundu yap
+
+  HAVALİMAN (Referans Veriler)
+  ─────────────────────────────────────────
+  GET    /api/ports                         Tüm limanlar (arama + filtreleme)
+  GET    /api/service-categories            Hizmet kategorileri listesi
+
+5. TECH STACK
+================================================================================
+  Runtime    : Node.js 20 + TypeScript
+  Framework  : Express.js veya Fastify
+  ORM        : Prisma (PostgreSQL)
+  Veritabanı : PostgreSQL 16
+  Auth       : JWT (Access Token 15dk + Refresh Token 7gün)
+  Dosya      : AWS S3 veya MinIO
+  Cache      : Redis (oturum + bildirim)
+  Realtime   : Socket.io (mesajlaşma + bildirimler)
+  Doküman    : Swagger / OpenAPI 3.0
+
+6. GÜVENLİK PRENSİPLERİ
+================================================================================
+  - Şifreler bcrypt (salt rounds: 12) ile hash'lenir
+  - JWT Access Token: 15 dakika, Refresh Token: 7 gün
+  - Role-based middleware: agent routeları agente, taşeron routeları taşerona
+  - Rate limiting: login endpoint'i için max 5 deneme / 15 dakika
+  - Dosya yüklemede MIME type ve boyut validasyonu
+  - SQL injection: Prisma ORM prepared statements
+  - CORS: yalnızca frontend origini kabul eder
+
+================================================================================
+7. PLANTUML — VERİTABANI TABLOLARI (Entity Relationship Diagram)
+================================================================================
+
+@startuml portlink_db_schema
+!define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define PK(x) <u>x</u>
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FAFAFA
+skinparam class {
+  BackgroundColor White
+  BorderColor #2C3E50
+  HeaderBackgroundColor #2980B9
+  HeaderFontColor White
+}
+
+TABLE(users, "users") {
+  PK(id : UUID)
+  email : VARCHAR(255)
+  password_hash : VARCHAR(255)
+  role : VARCHAR(30)
+  is_verified : BOOLEAN
+  is_active : BOOLEAN
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+TABLE(agent_profiles, "agent_profiles") {
+  PK(id : UUID)
+  user_id : UUID <<FK>>
+  full_name : VARCHAR(150)
+  phone : VARCHAR(30)
+  company_name : VARCHAR(200)
+  country : VARCHAR(100)
+  city : VARCHAR(100)
+  tax_number : VARCHAR(50)
+  logo_url : VARCHAR(500)
+  rating : NUMERIC(3,2)
+  total_jobs : INT
+  is_verified : BOOLEAN
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+TABLE(subcontractor_profiles, "subcontractor_profiles") {
+  PK(id : UUID)
+  user_id : UUID <<FK>>
+  full_name : VARCHAR(150)
+  phone : VARCHAR(30)
+  company_name : VARCHAR(200)
+  country : VARCHAR(100)
+  city : VARCHAR(100)
+  tax_number : VARCHAR(50)
+  logo_url : VARCHAR(500)
+  rating : NUMERIC(3,2)
+  total_completed : INT
+  expertise_tags : TEXT[]
+  is_verified : BOOLEAN
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+TABLE(job_listings, "job_listings") {
+  PK(id : UUID)
+  agent_id : UUID <<FK>>
+  title : VARCHAR(300)
+  listing_type : VARCHAR(30)
+  ship_name : VARCHAR(200)
+  port_code : VARCHAR(20) <<FK>>
+  location : VARCHAR(300)
+  category : VARCHAR(100)
+  selected_services : TEXT[]
+  eta : TIMESTAMPTZ
+  need_text : TEXT
+  budget_min : NUMERIC(15,2)
+  budget_max : NUMERIC(15,2)
+  currency : VARCHAR(10)
+  status : VARCHAR(20)
+  offer_count : INT
+  deadline : TIMESTAMPTZ
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+TABLE(job_files, "job_files") {
+  PK(id : UUID)
+  job_id : UUID <<FK>>
+  file_name : VARCHAR(300)
+  file_url : VARCHAR(500)
+  file_size : INT
+  file_type : VARCHAR(20)
+  uploaded_by : UUID <<FK>>
+  created_at : TIMESTAMPTZ
+}
+
+TABLE(offers, "offers") {
+  PK(id : UUID)
+  job_id : UUID <<FK>>
+  subcontractor_id : UUID <<FK>>
+  price : NUMERIC(15,2)
+  currency : VARCHAR(10)
+  estimated_days : INT
+  cover_note : TEXT
+  status : VARCHAR(20)
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+TABLE(assigned_jobs, "assigned_jobs") {
+  PK(id : UUID)
+  job_id : UUID <<FK>>
+  offer_id : UUID <<FK>>
+  agent_id : UUID <<FK>>
+  subcontractor_id : UUID <<FK>>
+  progress : INT
+  status : VARCHAR(30)
+  start_date : DATE
+  due_date : DATE
+  completed_at : TIMESTAMPTZ
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+TABLE(job_logs, "job_logs") {
+  PK(id : UUID)
+  assigned_job_id : UUID <<FK>>
+  created_by : UUID <<FK>>
+  title : VARCHAR(300)
+  description : TEXT
+  created_at : TIMESTAMPTZ
+}
+
+TABLE(job_reports, "job_reports") {
+  PK(id : UUID)
+  assigned_job_id : UUID <<FK>>
+  uploaded_by : UUID <<FK>>
+  file_name : VARCHAR(300)
+  file_url : VARCHAR(500)
+  file_size : INT
+  file_type : VARCHAR(20)
+  created_at : TIMESTAMPTZ
+}
+
+TABLE(messages, "messages") {
+  PK(id : UUID)
+  assigned_job_id : UUID <<FK>>
+  sender_id : UUID <<FK>>
+  receiver_id : UUID <<FK>>
+  content : TEXT
+  is_read : BOOLEAN
+  created_at : TIMESTAMPTZ
+}
+
+TABLE(notifications, "notifications") {
+  PK(id : UUID)
+  user_id : UUID <<FK>>
+  type : VARCHAR(50)
+  title : VARCHAR(300)
+  body : TEXT
+  is_read : BOOLEAN
+  data : JSONB
+  created_at : TIMESTAMPTZ
+}
+
+TABLE(ports, "ports") {
+  PK(id : UUID)
+  code : VARCHAR(20)
+  name : VARCHAR(300)
+  region : VARCHAR(100)
+  coordinates : POINT
+  created_at : TIMESTAMPTZ
+}
+
+TABLE(service_categories, "service_categories") {
+  PK(id : UUID)
+  code : VARCHAR(50)
+  title : VARCHAR(200)
+  sub_services : TEXT[]
+  created_at : TIMESTAMPTZ
+}
+
+TABLE(wallet_transactions, "wallet_transactions") {
+  PK(id : UUID)
+  subcontractor_id : UUID <<FK>>
+  assigned_job_id : UUID <<FK>>
+  type : VARCHAR(30)
+  amount : NUMERIC(15,2)
+  currency : VARCHAR(10)
+  status : VARCHAR(20)
+  description : TEXT
+  created_at : TIMESTAMPTZ
+}
+
+TABLE(refresh_tokens, "refresh_tokens") {
+  PK(id : UUID)
+  user_id : UUID <<FK>>
+  token_hash : VARCHAR(500)
+  expires_at : TIMESTAMPTZ
+  created_at : TIMESTAMPTZ
+}
+
+' ─── İLİŞKİLER ───────────────────────────────────────────
+users           "1" --  "1"     agent_profiles         : has
+users           "1" --  "1"     subcontractor_profiles : has
+users           "1" --  "0..*"  refresh_tokens         : has
+users           "1" --  "0..*"  notifications          : receives
+
+agent_profiles       "1" --  "0..*"  job_listings     : posts
+job_listings         "1" --  "0..*"  job_files        : has
+job_listings         "1" --  "0..*"  offers           : receives
+job_listings         "1" --  "0..1"  assigned_jobs    : becomes
+
+subcontractor_profiles "1" --  "0..*"  offers           : submits
+subcontractor_profiles "1" --  "0..*"  wallet_transactions : earns
+
+offers          "1" --  "0..1"  assigned_jobs    : triggers
+
+assigned_jobs   "1" --  "0..*"  job_logs         : has
+assigned_jobs   "1" --  "0..*"  job_reports      : has
+assigned_jobs   "1" --  "0..*"  messages         : has
+assigned_jobs   "1" --  "0..*"  wallet_transactions : generates
+
+ports           "1" --  "0..*"  job_listings     : referenced_by
+
+@enduml
+
+================================================================================
+8. PLANTUML — SEQUENCE DİYAGRAMLARI
+================================================================================
+
+--- SENARYO 1: Acente İlan Oluşturma ve Taşeron Teklif Verme ---
+
+@startuml portlink_sequence_job_offer
+title Portlink — İlan & Teklif Akışı
+
+actor "Acente" as Agent
+actor "Taşeron" as Sub
+participant "API Gateway" as API
+participant "Auth Service" as Auth
+participant "Job Service" as JobSvc
+participant "Offer Service" as OfferSvc
+participant "Notification Service" as Notif
+database "PostgreSQL" as DB
+queue "Redis / MQ" as Queue
+
+== ACENTE: İlan Oluşturma ==
+Agent -> API : POST /api/auth/login\n{email, password}
+API -> Auth : validateCredentials()
+Auth -> DB : SELECT users WHERE email = ?
+DB --> Auth : user row
+Auth --> API : JWT access_token + refresh_token
+API --> Agent : 200 OK {access_token}
+
+Agent -> API : POST /api/agent/jobs\nAuthorization: Bearer <token>\n{title, category, port_code, listing_type,\n eta, need_text, selected_services, budget...}
+API -> Auth : verifyJWT(token)
+Auth --> API : {userId, role:'agent'}
+API -> JobSvc : createJobListing(agentId, payload)
+JobSvc -> DB : INSERT INTO job_listings (...)
+DB --> JobSvc : newJob {id, status:'active'}
+JobSvc --> API : newJob
+API --> Agent : 201 Created {job}
+
+== TAŞERON: İlan Keşfetme ==
+Sub -> API : GET /api/subcontractor/jobs?category=Teknik&location=İzmir
+API -> Auth : verifyJWT(token)
+Auth --> API : {userId, role:'subcontractor'}
+API -> JobSvc : listActiveJobs(filters)
+JobSvc -> DB : SELECT job_listings WHERE status='active' AND ...
+DB --> JobSvc : [jobList]
+JobSvc --> API : [jobList]
+API --> Sub : 200 OK {jobs:[...]}
+
+== TAŞERON: Teklif Verme ==
+Sub -> API : POST /api/subcontractor/jobs/:jobId/offer\n{price, estimated_days, cover_note}
+API -> OfferSvc : createOffer(subId, jobId, payload)
+OfferSvc -> DB : INSERT INTO offers (...)
+DB --> OfferSvc : newOffer {id, status:'pending'}
+OfferSvc -> DB : UPDATE job_listings SET offer_count = offer_count + 1
+OfferSvc -> Queue : PUBLISH notification_event\n{type:'NEW_OFFER', agentId, jobId, offerId}
+Queue -> Notif : consume(event)
+Notif -> DB : INSERT INTO notifications (user_id=agentId, type:'NEW_OFFER', ...)
+Notif -> Agent : WebSocket push: "Yeni teklif geldi!"
+OfferSvc --> API : newOffer
+API --> Sub : 201 Created {offer}
+
+@enduml
+
+--- SENARYO 2: Acente Teklifi Kabul Eder ve İş Başlar ---
+
+@startuml portlink_sequence_accept_job
+title Portlink — Teklif Kabul & İş Atama Akışı
+
+actor "Acente" as Agent
+actor "Taşeron" as Sub
+participant "API Gateway" as API
+participant "Auth Service" as Auth
+participant "Offer Service" as OfferSvc
+participant "Job Service" as JobSvc
+participant "Notification Service" as Notif
+database "PostgreSQL" as DB
+
+== ACENTE: Teklifleri İnceler ==
+Agent -> API : GET /api/agent/jobs/:jobId/offers
+API -> Auth : verifyJWT(token)
+Auth --> API : {role:'agent'}
+API -> OfferSvc : listOffers(jobId, agentId)
+OfferSvc -> DB : SELECT offers WHERE job_id = :jobId
+DB --> OfferSvc : [offers]
+OfferSvc --> API : [offers]
+API --> Agent : 200 OK {offers:[...]}
+
+== ACENTE: Teklifi Kabul Eder ==
+Agent -> API : PUT /api/agent/offers/:offerId/accept
+API -> Auth : verifyJWT(token)
+Auth --> API : {role:'agent'}
+API -> OfferSvc : acceptOffer(offerId, agentId)
+
+OfferSvc -> DB : BEGIN TRANSACTION
+OfferSvc -> DB : UPDATE offers SET status = 'accepted' WHERE id = :offerId
+OfferSvc -> DB : UPDATE offers SET status = 'rejected' \nWHERE job_id = :jobId AND id != :offerId
+OfferSvc -> DB : UPDATE job_listings SET status = 'reviewing' WHERE id = :jobId
+OfferSvc -> DB : INSERT INTO assigned_jobs (job_id, offer_id, agent_id,\n subcontractor_id, status='planning', progress=0)
+OfferSvc -> DB : COMMIT TRANSACTION
+DB --> OfferSvc : {assignedJob}
+
+OfferSvc -> Notif : PUBLISH notification\n{type:'OFFER_ACCEPTED', subcontractorId, assignedJobId}
+Notif -> DB : INSERT INTO notifications (subcontractorId, 'OFFER_ACCEPTED')
+Notif -> Sub : WebSocket push: "Teklifiniz kabul edildi!"
+
+OfferSvc --> API : {assignedJob}
+API --> Agent : 200 OK {assignedJob}
+
+== TAŞERON: İşi Görür ve Başlatır ==
+Sub -> API : GET /api/subcontractor/active-jobs
+API -> JobSvc : getActiveJobs(subId)
+JobSvc -> DB : SELECT assigned_jobs WHERE subcontractor_id = :subId
+DB --> JobSvc : [assignedJobs]
+JobSvc --> API : [assignedJobs]
+API --> Sub : 200 OK {activeJobs:[...]}
+
+@enduml
+
+--- SENARYO 3: Taşeron Rapor Yükler, Acente Onaylar ---
+
+@startuml portlink_sequence_report_complete
+title Portlink — İş İlerlemesi ve Tamamlama Akışı
+
+actor "Acente" as Agent
+actor "Taşeron" as Sub
+participant "API Gateway" as API
+participant "Auth Service" as Auth
+participant "Job Service" as JobSvc
+participant "File Service" as FileSvc
+participant "Notification Service" as Notif
+participant "Wallet Service" as WalletSvc
+database "PostgreSQL" as DB
+storage "S3 / MinIO" as S3
+
+== ACENTE: Rapor İster ==
+Agent -> API : POST /api/agent/assigned-jobs/:id/request-report
+API -> Auth : verifyJWT(token)
+Auth --> API : {role:'agent'}
+API -> Notif : notifySubcontractor(subId, 'REPORT_REQUESTED')
+Notif -> DB : INSERT INTO notifications
+Notif -> Sub : WebSocket push: "Rapor istendi!"
+API --> Agent : 200 OK {message:'Rapor isteği gönderildi'}
+
+== TAŞERON: Rapor/Dosya Yükler ==
+Sub -> API : POST /api/subcontractor/active-jobs/:id/reports\n(multipart/form-data)
+API -> Auth : verifyJWT(token)
+Auth --> API : {role:'subcontractor'}
+API -> FileSvc : uploadFile(file)
+FileSvc -> S3 : PUT file
+S3 --> FileSvc : {fileUrl}
+FileSvc -> DB : INSERT INTO job_reports (assigned_job_id, file_url, ...)
+DB --> FileSvc : {report}
+FileSvc -> Notif : PUBLISH {type:'NEW_REPORT', agentId}
+Notif -> DB : INSERT INTO notifications (agentId, 'NEW_REPORT')
+Notif -> Agent : WebSocket push: "Yeni rapor yüklendi!"
+API --> Sub : 201 Created {report}
+
+== TAŞERON: İlerleme Güncellemesi ==
+Sub -> API : PUT /api/subcontractor/active-jobs/:id\n{progress: 100, status: 'review'}
+API -> JobSvc : updateAssignedJob(id, payload)
+JobSvc -> DB : UPDATE assigned_jobs SET progress=100, status='review'
+JobSvc -> DB : INSERT INTO job_logs (%100 tamamlandı bildirimi)
+JobSvc --> API : {assignedJob}
+API --> Sub : 200 OK
+
+== ACENTE: İşi Tamamlar ==
+Agent -> API : PUT /api/agent/assigned-jobs/:id\n{status: 'completed'}
+API -> JobSvc : completeJob(id, agentId)
+JobSvc -> DB : BEGIN TRANSACTION
+JobSvc -> DB : UPDATE assigned_jobs SET status='completed', completed_at=NOW()
+JobSvc -> DB : UPDATE job_listings SET status='completed'
+JobSvc -> DB : UPDATE subcontractor_profiles SET total_completed = total_completed + 1
+JobSvc -> WalletSvc : createEarning(subId, assignedJobId, amount)
+WalletSvc -> DB : INSERT INTO wallet_transactions (type='earning', status='pending')
+JobSvc -> DB : COMMIT TRANSACTION
+API -> Notif : notify(subId, 'JOB_COMPLETED')
+Notif -> Sub : WebSocket push: "İş tamamlandı, ödeme bekliyor!"
+API --> Agent : 200 OK {assignedJob}
+
+@enduml
+
+================================================================================
+9. KLASÖR YAPISI (Backend)
+================================================================================
+
+portlink-backend/
+├── src/
+│   ├── config/
+│   │   ├── database.ts        (Prisma client)
+│   │   ├── redis.ts
+│   │   └── env.ts
+│   ├── middleware/
+│   │   ├── auth.middleware.ts  (JWT doğrulama)
+│   │   ├── role.middleware.ts  (agent / subcontractor guard)
+│   │   └── upload.middleware.ts
+│   ├── modules/
+│   │   ├── auth/
+│   │   │   ├── auth.router.ts
+│   │   │   ├── auth.controller.ts
+│   │   │   └── auth.service.ts
+│   │   ├── agent/
+│   │   │   ├── agent.router.ts
+│   │   │   ├── agent.controller.ts
+│   │   │   └── agent.service.ts
+│   │   ├── subcontractor/
+│   │   │   ├── subcontractor.router.ts
+│   │   │   ├── subcontractor.controller.ts
+│   │   │   └── subcontractor.service.ts
+│   │   ├── jobs/
+│   │   │   ├── jobs.router.ts
+│   │   │   ├── jobs.controller.ts
+│   │   │   └── jobs.service.ts
+│   │   ├── offers/
+│   │   │   ├── offers.router.ts
+│   │   │   ├── offers.controller.ts
+│   │   │   └── offers.service.ts
+│   │   ├── messages/
+│   │   ├── notifications/
+│   │   ├── files/
+│   │   └── wallet/
+│   ├── sockets/
+│   │   └── socket.handler.ts   (Socket.io)
+│   ├── utils/
+│   │   ├── password.ts
+│   │   ├── jwt.ts
+│   │   └── pagination.ts
+│   └── app.ts
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+├── package.json
+├── tsconfig.json
+└── .env.example
+
+================================================================================
+SON NOTLAR
+================================================================================
+- Frontend'de ports.json'daki tüm liman verileri PostgreSQL ports tablosuna
+  seed script ile aktarılacaktır.
+- Frontend şu an localStorage kullanmaktadır; backend hazır olunca
+  API çağrılarına geçilecektir.
+- Realtime özellikler (mesajlaşma, bildirimler) Socket.io ile sağlanacaktır.
+- Dosya boyutu limiti: 50 MB per dosya.
+- İlk fazda ödeme entegrasyonu (Stripe/iyzico) kapsam dışıdır;
+  wallet_transactions yalnızca hakediş takibi içindir.
+================================================================================
