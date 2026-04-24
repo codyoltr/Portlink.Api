@@ -71,8 +71,8 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 
 // ─── Application Services ─────────────────────────────────────────────────────
 builder.Services.AddScoped<JwtHelper>();
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<AgentService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<SubcontractorService>();
 builder.Services.AddScoped<MessageService>();
 builder.Services.AddScoped<NotificationService>();
@@ -126,6 +126,9 @@ builder.Services.AddDirectoryBrowser();
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Global Exception Middleware
+app.UseMiddleware<Portlink.Api.Middlewares.ExceptionMiddleware>();
 
 // ─── Development Middleware ───────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())

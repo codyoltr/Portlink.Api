@@ -12,9 +12,9 @@ namespace Portlink.Api.Modules.Agent;
 [Authorize(Roles = "agent")]
 public class AgentController : ControllerBase
 {
-    private readonly AgentService _svc;
+    private readonly IAgentService _svc;
 
-    public AgentController(AgentService svc) => _svc = svc;
+    public AgentController(IAgentService svc) => _svc = svc;
 
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -47,48 +47,32 @@ public class AgentController : ControllerBase
     [HttpGet("jobs/{id:guid}")]
     public async Task<IActionResult> GetJob(Guid id)
     {
-        try
-        {
-            var result = await _svc.GetJobDetailAsync(UserId, id);
-            return Ok(ApiResponse<JobListingDetailResponse>.Ok(result));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        var result = await _svc.GetJobDetailAsync(UserId, id);
+        return Ok(ApiResponse<JobListingDetailResponse>.Ok(result));
     }
 
     // PUT /api/agent/jobs/:id
     [HttpPut("jobs/{id:guid}")]
     public async Task<IActionResult> UpdateJob(Guid id, [FromBody] UpdateJobListingRequest req)
     {
-        try
-        {
-            var result = await _svc.UpdateJobAsync(UserId, id, req);
-            return Ok(ApiResponse<JobListingResponse>.Ok(result));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        var result = await _svc.UpdateJobAsync(UserId, id, req);
+        return Ok(ApiResponse<JobListingResponse>.Ok(result));
     }
 
     // DELETE /api/agent/jobs/:id
     [HttpDelete("jobs/{id:guid}")]
     public async Task<IActionResult> DeleteJob(Guid id)
     {
-        try
-        {
-            await _svc.DeleteJobAsync(UserId, id);
-            return Ok(ApiResponse.Ok("İlan silindi."));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        await _svc.DeleteJobAsync(UserId, id);
+        return Ok(ApiResponse.Ok("İlan silindi."));
     }
 
     // GET /api/agent/jobs/:id/offers
     [HttpGet("jobs/{id:guid}/offers")]
     public async Task<IActionResult> GetJobOffers(Guid id)
     {
-        try
-        {
-            var result = await _svc.GetJobOffersAsync(UserId, id);
-            return Ok(ApiResponse<List<OfferResponse>>.Ok(result));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        var result = await _svc.GetJobOffersAsync(UserId, id);
+        return Ok(ApiResponse<List<OfferResponse>>.Ok(result));
     }
 
     // POST /api/agent/jobs/:id/files
@@ -107,38 +91,24 @@ public class AgentController : ControllerBase
         await file.CopyToAsync(stream);
 
         var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
-        try
-        {
-            var result = await _svc.UploadJobFileAsync(UserId, id, file.FileName, $"/uploads/{fileName}", file.Length, ext);
-            return StatusCode(201, ApiResponse<JobFileResponse>.Ok(result));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        var result = await _svc.UploadJobFileAsync(UserId, id, file.FileName, $"/uploads/{fileName}", file.Length, ext);
+        return StatusCode(201, ApiResponse<JobFileResponse>.Ok(result));
     }
 
     // PUT /api/agent/offers/:offerId/accept
     [HttpPut("offers/{offerId:guid}/accept")]
     public async Task<IActionResult> AcceptOffer(Guid offerId)
     {
-        try
-        {
-            var result = await _svc.AcceptOfferAsync(UserId, offerId);
-            return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "Teklif kabul edildi."));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
-        catch (InvalidOperationException ex) { return Conflict(ApiResponse.Fail(ex.Message)); }
+        var result = await _svc.AcceptOfferAsync(UserId, offerId);
+        return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "Teklif kabul edildi."));
     }
 
     // PUT /api/agent/offers/:offerId/reject
     [HttpPut("offers/{offerId:guid}/reject")]
     public async Task<IActionResult> RejectOffer(Guid offerId)
     {
-        try
-        {
-            await _svc.RejectOfferAsync(UserId, offerId);
-            return Ok(ApiResponse.Ok("Teklif reddedildi."));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
-        catch (InvalidOperationException ex) { return Conflict(ApiResponse.Fail(ex.Message)); }
+        await _svc.RejectOfferAsync(UserId, offerId);
+        return Ok(ApiResponse.Ok("Teklif reddedildi."));
     }
 
     // GET /api/agent/assigned-jobs
@@ -154,53 +124,36 @@ public class AgentController : ControllerBase
     [HttpGet("assigned-jobs/{id:guid}")]
     public async Task<IActionResult> GetAssignedJobDetail(Guid id)
     {
-        try
-        {
-            var result = await _svc.GetAssignedJobDetailAsync(UserId, id);
-            return Ok(ApiResponse<AssignedJobDetailResponse>.Ok(result));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        var result = await _svc.GetAssignedJobDetailAsync(UserId, id);
+        return Ok(ApiResponse<AssignedJobDetailResponse>.Ok(result));
     }
 
     // POST /api/agent/assigned-jobs/:id/logs
     [HttpPost("assigned-jobs/{id:guid}/logs")]
     public async Task<IActionResult> AddJobLog(Guid id, [FromBody] AddJobLogRequest req)
     {
-        try
-        {
-            var result = await _svc.AddJobLogAsync(UserId, id, req);
-            return StatusCode(201, ApiResponse<JobLogResponse>.Ok(result));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        var result = await _svc.AddJobLogAsync(UserId, id, req);
+        return StatusCode(201, ApiResponse<JobLogResponse>.Ok(result));
     }
 
     // POST /api/agent/assigned-jobs/:id/request-report
     [HttpPost("assigned-jobs/{id:guid}/request-report")]
     public async Task<IActionResult> RequestReport(Guid id)
     {
-        try
-        {
-            await _svc.RequestReportAsync(UserId, id);
-            return Ok(ApiResponse.Ok("Rapor isteği gönderildi."));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        await _svc.RequestReportAsync(UserId, id);
+        return Ok(ApiResponse.Ok("Rapor isteği gönderildi."));
     }
 
     // PUT /api/agent/assigned-jobs/:id  (complete)
     [HttpPut("assigned-jobs/{id:guid}")]
     public async Task<IActionResult> UpdateAssignedJob(Guid id, [FromBody] UpdateAssignedJobRequest req)
     {
-        try
+        // Eğer status = completed ise tamamlama akışını çalıştır
+        if (req.Status == "completed")
         {
-            // Eğer status = completed ise tamamlama akışını çalıştır
-            if (req.Status == "completed")
-            {
-                var result = await _svc.CompleteJobAsync(UserId, id);
-                return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "İş tamamlandı."));
-            }
-            return BadRequest(ApiResponse.Fail("Geçersiz işlem."));
+            var result = await _svc.CompleteJobAsync(UserId, id);
+            return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "İş tamamlandı."));
         }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
-        catch (InvalidOperationException ex) { return Conflict(ApiResponse.Fail(ex.Message)); }
+        return BadRequest(ApiResponse.Fail("Geçersiz işlem."));
     }
 }

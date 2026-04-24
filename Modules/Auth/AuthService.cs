@@ -6,7 +6,7 @@ using Portlink.Api.Helpers;
 
 namespace Portlink.Api.Modules.Auth;
 
-public class AuthService
+public class AuthService : IAuthService
 {
     private readonly AppDbContext _db;
     private readonly JwtHelper _jwt;

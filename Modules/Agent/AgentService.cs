@@ -6,7 +6,7 @@ using Portlink.Api.Entities;
 
 namespace Portlink.Api.Modules.Agent;
 
-public class AgentService
+public class AgentService : IAgentService
 {
     private readonly AppDbContext _db;
 

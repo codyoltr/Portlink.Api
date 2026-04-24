@@ -10,9 +10,9 @@ namespace Portlink.Api.Modules.Auth;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly AuthService _authService;
+    private readonly IAuthService _authService;
 
-    public AuthController(AuthService authService)
+    public AuthController(IAuthService authService)
     {
         _authService = authService;
     }
@@ -21,60 +21,32 @@ public class AuthController : ControllerBase
     [HttpPost("register/agent")]
     public async Task<IActionResult> RegisterAgent([FromBody] RegisterAgentRequest req)
     {
-        try
-        {
-            var result = await _authService.RegisterAgentAsync(req);
-            return StatusCode(201, ApiResponse<AuthResponse>.Ok(result, "Kayıt başarılı."));
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ApiResponse.Fail(ex.Message));
-        }
+        var result = await _authService.RegisterAgentAsync(req);
+        return StatusCode(201, ApiResponse<AuthResponse>.Ok(result, "Kayıt başarılı."));
     }
 
     // POST /api/auth/register/subcontractor
     [HttpPost("register/subcontractor")]
     public async Task<IActionResult> RegisterSubcontractor([FromBody] RegisterSubcontractorRequest req)
     {
-        try
-        {
-            var result = await _authService.RegisterSubcontractorAsync(req);
-            return StatusCode(201, ApiResponse<AuthResponse>.Ok(result, "Kayıt başarılı."));
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ApiResponse.Fail(ex.Message));
-        }
+        var result = await _authService.RegisterSubcontractorAsync(req);
+        return StatusCode(201, ApiResponse<AuthResponse>.Ok(result, "Kayıt başarılı."));
     }
 
     // POST /api/auth/login
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)
     {
-        try
-        {
-            var result = await _authService.LoginAsync(req);
-            return Ok(ApiResponse<AuthResponse>.Ok(result));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ApiResponse.Fail(ex.Message));
-        }
+        var result = await _authService.LoginAsync(req);
+        return Ok(ApiResponse<AuthResponse>.Ok(result));
     }
 
     // POST /api/auth/refresh
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest req)
     {
-        try
-        {
-            var result = await _authService.RefreshAsync(req.RefreshToken);
-            return Ok(ApiResponse<AuthResponse>.Ok(result));
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(ApiResponse.Fail(ex.Message));
-        }
+        var result = await _authService.RefreshAsync(req.RefreshToken);
+        return Ok(ApiResponse<AuthResponse>.Ok(result));
     }
 
     // POST /api/auth/logout
@@ -93,14 +65,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Me()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        try
-        {
-            var result = await _authService.GetMeAsync(userId);
-            return Ok(ApiResponse<UserProfileResponse>.Ok(result));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ApiResponse.Fail(ex.Message));
-        }
+        var result = await _authService.GetMeAsync(userId);
+        return Ok(ApiResponse<UserProfileResponse>.Ok(result));
     }
 }
