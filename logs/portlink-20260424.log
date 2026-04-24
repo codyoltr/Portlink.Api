@@ -28,3 +28,7 @@ ORDER BY "MigrationId";
 2026-04-24 11:06:09.973 +03:00 [INF] HTTP GET / responded 404 in 83.6791 ms
 2026-04-24 11:06:09.998 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/ - 404 0 null 337.727ms
 2026-04-24 11:06:10.011 +03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5265/, Response status code: 404
+2026-04-24 11:06:16.894 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/swagger/index.html - null null
+2026-04-24 11:06:17.047 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/swagger/index.html - 200 null text/html;charset=utf-8 153.3178ms
+2026-04-24 11:06:17.888 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/swagger/v1/swagger.json - null null
+2026-04-24 11:06:18.070 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 181.9598ms
