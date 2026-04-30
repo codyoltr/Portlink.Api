@@ -162,7 +162,7 @@ public class AgentController : ControllerBase
     public async Task<IActionResult> GetSubcontractors([FromQuery] string? search)
     {
         var result = await _svc.GetSubcontractorsAsync(search);
-        return Ok(ApiResponse<List<Portlink.Api.DTOs.Auth.SubcontractorProfileResponse>>.Ok(result));
+        return Ok(ApiResponse<List<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse>>.Ok(result));
     }
 
     // POST /api/agent/subcontractors/:id/rate

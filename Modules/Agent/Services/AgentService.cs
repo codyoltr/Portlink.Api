@@ -371,7 +371,7 @@ public class AgentService : IAgentService
 
     // ─── SUBCONTRACTORS ──────────────────────────────────────────────────────
 
-    public async Task<List<Portlink.Api.DTOs.Auth.SubcontractorProfileResponse>> GetSubcontractorsAsync(string? search)
+    public async Task<List<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse>> GetSubcontractorsAsync(string? search)
     {
         var query = _db.SubcontractorProfiles.AsQueryable();
         if (!string.IsNullOrWhiteSpace(search))
@@ -380,7 +380,7 @@ public class AgentService : IAgentService
             query = query.Where(s => s.CompanyName.ToLower().Contains(search) || 
                                      (s.City != null && s.City.ToLower().Contains(search)));
         }
-        return await query.Select(s => new Portlink.Api.DTOs.Auth.SubcontractorProfileResponse
+        return await query.Select(s => new Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse
         {
             Id = s.Id, FullName = s.FullName, CompanyName = s.CompanyName,
             Phone = s.Phone, Country = s.Country, City = s.City,

@@ -24,6 +24,6 @@ public interface IAgentService
     Task<AssignedJobResponse> CompleteJobAsync(Guid userId, Guid assignedJobId);
     Task<JobFileResponse> UploadJobFileAsync(Guid userId, Guid jobId, string fileName, string fileUrl, long? fileSize, string? fileType);
 
-    Task<List<Portlink.Api.DTOs.Auth.SubcontractorProfileResponse>> GetSubcontractorsAsync(string? search);
+    Task<List<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse>> GetSubcontractorsAsync(string? search);
     Task RateSubcontractorAsync(Guid userId, Guid subcontractorId, decimal rating);
 }
