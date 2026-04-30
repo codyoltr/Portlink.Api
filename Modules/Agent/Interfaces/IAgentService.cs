@@ -13,6 +13,7 @@ public interface IAgentService
     Task DeleteJobAsync(Guid userId, Guid jobId);
     
     Task<List<OfferResponse>> GetJobOffersAsync(Guid userId, Guid jobId);
+    Task<List<OfferResponse>> GetAllOffersAsync(Guid userId);
     Task<AssignedJobResponse> AcceptOfferAsync(Guid userId, Guid offerId);
     Task RejectOfferAsync(Guid userId, Guid offerId);
     
@@ -22,4 +23,7 @@ public interface IAgentService
     Task RequestReportAsync(Guid userId, Guid assignedJobId);
     Task<AssignedJobResponse> CompleteJobAsync(Guid userId, Guid assignedJobId);
     Task<JobFileResponse> UploadJobFileAsync(Guid userId, Guid jobId, string fileName, string fileUrl, long? fileSize, string? fileType);
+
+    Task<List<Portlink.Api.DTOs.Auth.SubcontractorProfileResponse>> GetSubcontractorsAsync(string? search);
+    Task RateSubcontractorAsync(Guid userId, Guid subcontractorId, decimal rating);
 }

@@ -173,6 +173,21 @@ public class AgentService : IAgentService
             }).ToListAsync();
     }
 
+    public async Task<List<OfferResponse>> GetAllOffersAsync(Guid userId)
+    {
+        var agent = await GetAgentProfileAsync(userId);
+        return await _db.Offers.Include(o => o.Subcontractor).Include(o => o.JobListing)
+            .Where(o => o.JobListing.AgentId == agent.Id).OrderByDescending(o => o.CreatedAt)
+            .Select(o => new OfferResponse
+            {
+                Id = o.Id, JobId = o.JobId, JobTitle = o.JobListing.Title,
+                SubcontractorId = o.SubcontractorId, SubcontractorCompanyName = o.Subcontractor.CompanyName,
+                SubcontractorLogoUrl = o.Subcontractor.LogoUrl, SubcontractorRating = o.Subcontractor.Rating,
+                Price = o.Price, Currency = o.Currency, EstimatedDays = o.EstimatedDays,
+                CoverNote = o.CoverNote, Status = o.Status, CreatedAt = o.CreatedAt
+            }).ToListAsync();
+    }
+
     public async Task<AssignedJobResponse> AcceptOfferAsync(Guid userId, Guid offerId)
     {
         var agent = await GetAgentProfileAsync(userId);
@@ -352,6 +367,37 @@ public class AgentService : IAgentService
         _db.JobFiles.Add(file);
         await _db.SaveChangesAsync();
         return new JobFileResponse { Id = file.Id, FileName = file.FileName, FileUrl = file.FileUrl, FileSize = file.FileSize, FileType = file.FileType, CreatedAt = file.CreatedAt };
+    }
+
+    // ─── SUBCONTRACTORS ──────────────────────────────────────────────────────
+
+    public async Task<List<Portlink.Api.DTOs.Auth.SubcontractorProfileResponse>> GetSubcontractorsAsync(string? search)
+    {
+        var query = _db.SubcontractorProfiles.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            search = search.ToLower();
+            query = query.Where(s => s.CompanyName.ToLower().Contains(search) || 
+                                     (s.City != null && s.City.ToLower().Contains(search)));
+        }
+        return await query.Select(s => new Portlink.Api.DTOs.Auth.SubcontractorProfileResponse
+        {
+            Id = s.Id, FullName = s.FullName, CompanyName = s.CompanyName,
+            Phone = s.Phone, Country = s.Country, City = s.City,
+            LogoUrl = s.LogoUrl, Rating = s.Rating, TotalCompleted = s.TotalCompleted,
+            ExpertiseTags = s.ExpertiseTags != null ? s.ExpertiseTags.ToList() : new List<string>(),
+            IsVerified = s.IsVerified
+        }).ToListAsync();
+    }
+
+    public async Task RateSubcontractorAsync(Guid userId, Guid subcontractorId, decimal rating)
+    {
+        var agent = await GetAgentProfileAsync(userId);
+        var sub = await _db.SubcontractorProfiles.FirstOrDefaultAsync(s => s.Id == subcontractorId)
+            ?? throw new KeyNotFoundException("Taşeron bulunamadı.");
+        // Basit bir rating güncellemesi (gerçek bir sistemde rating tablosu olur)
+        sub.Rating = (sub.Rating * sub.TotalCompleted + rating) / (sub.TotalCompleted == 0 ? 1 : sub.TotalCompleted + 1);
+        await _db.SaveChangesAsync();
     }
 
     // ─── PRIVATE ──────────────────────────────────────────────────────────────
