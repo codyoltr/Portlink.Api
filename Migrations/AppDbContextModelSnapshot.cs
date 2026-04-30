@@ -23,69 +23,6 @@ namespace Portlink.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Portlink.Api.Entities.AgentProfile", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("City")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("CompanyName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Country")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<bool>("IsVerified")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("LogoUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Phone")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<decimal>("Rating")
-                        .HasPrecision(3, 2)
-                        .HasColumnType("numeric(3,2)");
-
-                    b.Property<string>("TaxNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int>("TotalJobs")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("AgentProfiles");
-                });
-
             modelBuilder.Entity("Portlink.Api.Entities.AssignedJob", b =>
                 {
                     b.Property<Guid>("Id")
@@ -504,33 +441,6 @@ namespace Portlink.Api.Migrations
                     b.ToTable("Ports");
                 });
 
-            modelBuilder.Entity("Portlink.Api.Entities.RefreshToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshTokens");
-                });
-
             modelBuilder.Entity("Portlink.Api.Entities.ServiceCategory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -716,20 +626,99 @@ namespace Portlink.Api.Migrations
                     b.ToTable("WalletTransactions");
                 });
 
-            modelBuilder.Entity("Portlink.Api.Entities.AgentProfile", b =>
+            modelBuilder.Entity("Portlink.Api.Modules.Auth.Entities.AgentProfile", b =>
                 {
-                    b.HasOne("Portlink.Api.Entities.User", "User")
-                        .WithOne("AgentProfile")
-                        .HasForeignKey("Portlink.Api.Entities.AgentProfile", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
-                    b.Navigation("User");
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<decimal>("Rating")
+                        .HasPrecision(3, 2)
+                        .HasColumnType("numeric(3,2)");
+
+                    b.Property<string>("TaxNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("TotalJobs")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("AgentProfiles");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Modules.Auth.Entities.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.AssignedJob", b =>
                 {
-                    b.HasOne("Portlink.Api.Entities.AgentProfile", "Agent")
+                    b.HasOne("Portlink.Api.Modules.Auth.Entities.AgentProfile", "Agent")
                         .WithMany("AssignedJobs")
                         .HasForeignKey("AgentId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -783,7 +772,7 @@ namespace Portlink.Api.Migrations
 
             modelBuilder.Entity("Portlink.Api.Entities.JobListing", b =>
                 {
-                    b.HasOne("Portlink.Api.Entities.AgentProfile", "Agent")
+                    b.HasOne("Portlink.Api.Modules.Auth.Entities.AgentProfile", "Agent")
                         .WithMany("JobListings")
                         .HasForeignKey("AgentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -890,17 +879,6 @@ namespace Portlink.Api.Migrations
                     b.Navigation("Subcontractor");
                 });
 
-            modelBuilder.Entity("Portlink.Api.Entities.RefreshToken", b =>
-                {
-                    b.HasOne("Portlink.Api.Entities.User", "User")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Portlink.Api.Entities.SubcontractorProfile", b =>
                 {
                     b.HasOne("Portlink.Api.Entities.User", "User")
@@ -930,11 +908,26 @@ namespace Portlink.Api.Migrations
                     b.Navigation("Subcontractor");
                 });
 
-            modelBuilder.Entity("Portlink.Api.Entities.AgentProfile", b =>
+            modelBuilder.Entity("Portlink.Api.Modules.Auth.Entities.AgentProfile", b =>
                 {
-                    b.Navigation("AssignedJobs");
+                    b.HasOne("Portlink.Api.Entities.User", "User")
+                        .WithOne("AgentProfile")
+                        .HasForeignKey("Portlink.Api.Modules.Auth.Entities.AgentProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("JobListings");
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Modules.Auth.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("Portlink.Api.Entities.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.AssignedJob", b =>
@@ -985,6 +978,13 @@ namespace Portlink.Api.Migrations
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("SubcontractorProfile");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Modules.Auth.Entities.AgentProfile", b =>
+                {
+                    b.Navigation("AssignedJobs");
+
+                    b.Navigation("JobListings");
                 });
 #pragma warning restore 612, 618
         }
