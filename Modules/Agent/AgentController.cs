@@ -156,4 +156,28 @@ public class AgentController : ControllerBase
         }
         return BadRequest(ApiResponse.Fail("Geçersiz işlem."));
     }
+
+    // GET /api/agent/subcontractors
+    [HttpGet("subcontractors")]
+    public async Task<IActionResult> GetSubcontractors([FromQuery] string? search)
+    {
+        var result = await _svc.GetSubcontractorsAsync(search);
+        return Ok(ApiResponse<List<Portlink.Api.DTOs.Auth.SubcontractorProfileResponse>>.Ok(result));
+    }
+
+    // POST /api/agent/subcontractors/:id/rate
+    [HttpPost("subcontractors/{id:guid}/rate")]
+    public async Task<IActionResult> RateSubcontractor(Guid id, [FromQuery] decimal rating)
+    {
+        await _svc.RateSubcontractorAsync(UserId, id, rating);
+        return Ok(ApiResponse.Ok("Puanlama kaydedildi."));
+    }
+
+    // GET /api/agent/offers
+    [HttpGet("offers")]
+    public async Task<IActionResult> GetAllOffers()
+    {
+        var result = await _svc.GetAllOffersAsync(UserId);
+        return Ok(ApiResponse<List<OfferResponse>>.Ok(result));
+    }
 }
