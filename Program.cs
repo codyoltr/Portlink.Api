@@ -142,11 +142,11 @@ if (app.Environment.IsDevelopment())
 }
 
 // ─── Pipeline ────────────────────────────────────────────────────────────────
+app.UseCors("Frontend");
 app.UseIpRateLimiting();
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseStaticFiles();           // /uploads dizinine erişim
-app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
