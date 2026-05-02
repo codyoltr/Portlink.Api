@@ -1,0 +1,1109 @@
+2026-04-25 21:02:58.489 +03:00 [INF] Executed DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2026-04-25 21:02:58.872 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2026-04-25 21:02:58.891 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2026-04-25 21:02:58.899 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2026-04-25 21:02:58.908 +03:00 [INF] No migrations were applied. The database is already up to date.
+2026-04-25 21:02:58.919 +03:00 [INF] Veritabanı migration tamamlandı.
+2026-04-25 21:02:58.923 +03:00 [INF] Portlink API başlatıldı.
+2026-04-25 21:02:58.937 +03:00 [INF] User profile is available. Using 'C:\Users\sudef\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-04-25 21:02:58.978 +03:00 [WRN] The WebRootPath was not found: C:\Users\sudef\Desktop\Portlink.Api\wwwroot. Static files may be unavailable.
+2026-04-25 21:02:59.006 +03:00 [INF] Now listening on: http://localhost:5265
+2026-04-25 21:02:59.009 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-04-25 21:02:59.010 +03:00 [INF] Hosting environment: Development
+2026-04-25 21:02:59.011 +03:00 [INF] Content root path: C:\Users\sudef\Desktop\Portlink.Api
+2026-04-25 21:04:53.237 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/swagger/index.html - null null
+2026-04-25 21:04:53.407 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/swagger/index.html - 200 null text/html;charset=utf-8 173.2139ms
+2026-04-25 21:04:53.612 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/swagger/v1/swagger.json - null null
+2026-04-25 21:04:53.807 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 195.0247ms
+2026-04-25 21:08:31.971 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/auth/login - null null
+2026-04-25 21:08:32.062 +03:00 [WRN] Failed to determine the https port for redirect.
+2026-04-25 21:08:32.069 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:08:32.079 +03:00 [INF] HTTP OPTIONS /api/auth/login responded 204 in 16.8052 ms
+2026-04-25 21:08:32.088 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/auth/login - 204 null null 116.9922ms
+2026-04-25 21:08:32.100 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5265/api/auth/login - application/json 44
+2026-04-25 21:08:32.123 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:08:37.088 +03:00 [INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenExpiredException: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '25.04.2026 17:38:18', Current time (UTC): '25.04.2026 18:08:37'.
+   at Microsoft.IdentityModel.Tokens.ValidatorUtilities.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.Tokens.Validators.ValidateLifetime(Nullable`1 notBefore, Nullable`1 expires, SecurityToken securityToken, TokenValidationParameters validationParameters)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateTokenPayloadAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ValidateJWSAsync(JsonWebToken jsonWebToken, TokenValidationParameters validationParameters, BaseConfiguration configuration)
+2026-04-25 21:08:37.139 +03:00 [INF] Bearer was not authenticated. Failure message: IDX10223: Lifetime validation failed. The token is expired. ValidTo (UTC): '25.04.2026 17:38:18', Current time (UTC): '25.04.2026 18:08:37'.
+2026-04-25 21:08:37.153 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Auth.AuthController.Login (Portlink.Api)'
+2026-04-25 21:08:37.214 +03:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(Portlink.Api.DTOs.Auth.LoginRequest) on controller Portlink.Api.Modules.Auth.AuthController (Portlink.Api).
+2026-04-25 21:08:38.939 +03:00 [INF] Executed DbCommand (27ms) [Parameters=[@__ToLower_0='?'], CommandType='"Text"', CommandTimeout='30']
+SELECT u."Id", u."CreatedAt", u."Email", u."IsActive", u."IsVerified", u."PasswordHash", u."Role", u."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId", s."Id", s."City", s."CompanyName", s."Country", s."CreatedAt", s."ExpertiseTags", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalCompleted", s."UpdatedAt", s."UserId"
+FROM "Users" AS u
+LEFT JOIN "AgentProfiles" AS a ON u."Id" = a."UserId"
+LEFT JOIN "SubcontractorProfiles" AS s ON u."Id" = s."UserId"
+WHERE u."Email" = @__ToLower_0
+LIMIT 1
+2026-04-25 21:08:38.975 +03:00 [INF] Executed action Portlink.Api.Modules.Auth.AuthController.Login (Portlink.Api) in 1742.4712ms
+2026-04-25 21:08:38.985 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Auth.AuthController.Login (Portlink.Api)'
+2026-04-25 21:08:38.996 +03:00 [ERR] HTTP POST /api/auth/login responded 500 in 6873.8767 ms
+System.UnauthorizedAccessException: E-posta veya şifre hatalı.
+   at Portlink.Api.Modules.Auth.AuthService.LoginAsync(LoginRequest req) in C:\Users\sudef\Desktop\Portlink.Api\Modules\Auth\AuthService.cs:line 91
+   at Portlink.Api.Modules.Auth.AuthController.Login(LoginRequest req) in C:\Users\sudef\Desktop\Portlink.Api\Modules\Auth\AuthController.cs:line 40
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2026-04-25 21:08:39.047 +03:00 [ERR] Sunucu hatası oluştu: E-posta veya şifre hatalı.
+System.UnauthorizedAccessException: E-posta veya şifre hatalı.
+   at Portlink.Api.Modules.Auth.AuthService.LoginAsync(LoginRequest req) in C:\Users\sudef\Desktop\Portlink.Api\Modules\Auth\AuthService.cs:line 91
+   at Portlink.Api.Modules.Auth.AuthController.Login(LoginRequest req) in C:\Users\sudef\Desktop\Portlink.Api\Modules\Auth\AuthController.cs:line 40
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at AspNetCoreRateLimit.RateLimitMiddleware`1.Invoke(HttpContext context) in C:\Users\User\Documents\Github\AspNetCoreRateLimit\src\AspNetCoreRateLimit\Middleware\RateLimitMiddleware.cs:line 124
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Portlink.Api.Middlewares.ExceptionMiddleware.InvokeAsync(HttpContext httpContext) in C:\Users\sudef\Desktop\Portlink.Api\Middlewares\ExceptionMiddleware.cs:line 23
+2026-04-25 21:08:39.123 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5265/api/auth/login - 401 null application/json 7022.6465ms
+2026-04-25 21:08:39.137 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/auth/refresh - null null
+2026-04-25 21:08:39.148 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:08:39.151 +03:00 [INF] HTTP OPTIONS /api/auth/refresh responded 204 in 4.4018 ms
+2026-04-25 21:08:39.157 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/auth/refresh - 204 null null 19.2711ms
+2026-04-25 21:08:39.167 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5265/api/auth/refresh - application/json 107
+2026-04-25 21:08:39.175 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:08:39.180 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Auth.AuthController.Refresh (Portlink.Api)'
+2026-04-25 21:08:39.205 +03:00 [INF] Route matched with {action = "Refresh", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Refresh(Portlink.Api.DTOs.Auth.RefreshTokenRequest) on controller Portlink.Api.Modules.Auth.AuthController (Portlink.Api).
+2026-04-25 21:08:39.521 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__hash_0='?'], CommandType='"Text"', CommandTimeout='30']
+SELECT r."Id", r."CreatedAt", r."ExpiresAt", r."TokenHash", r."UserId", u."Id", u."CreatedAt", u."Email", u."IsActive", u."IsVerified", u."PasswordHash", u."Role", u."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId", s."Id", s."City", s."CompanyName", s."Country", s."CreatedAt", s."ExpertiseTags", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalCompleted", s."UpdatedAt", s."UserId"
+FROM "RefreshTokens" AS r
+INNER JOIN "Users" AS u ON r."UserId" = u."Id"
+LEFT JOIN "AgentProfiles" AS a ON u."Id" = a."UserId"
+LEFT JOIN "SubcontractorProfiles" AS s ON u."Id" = s."UserId"
+WHERE r."TokenHash" = @__hash_0 AND r."ExpiresAt" > now()
+LIMIT 1
+2026-04-25 21:08:40.270 +03:00 [INF] Executed DbCommand (6ms) [Parameters=[@p0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+DELETE FROM "RefreshTokens"
+WHERE "Id" = @p0;
+2026-04-25 21:08:40.402 +03:00 [INF] Executed DbCommand (9ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?' (DbType = DateTime), @p3='?', @p4='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "RefreshTokens" ("Id", "CreatedAt", "ExpiresAt", "TokenHash", "UserId")
+VALUES (@p0, @p1, @p2, @p3, @p4);
+2026-04-25 21:08:40.431 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Auth.AuthResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:08:40.491 +03:00 [INF] Executed action Portlink.Api.Modules.Auth.AuthController.Refresh (Portlink.Api) in 1277.1135ms
+2026-04-25 21:08:40.502 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Auth.AuthController.Refresh (Portlink.Api)'
+2026-04-25 21:08:40.512 +03:00 [INF] HTTP POST /api/auth/refresh responded 200 in 1337.2333 ms
+2026-04-25 21:08:40.522 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5265/api/auth/refresh - 200 null application/json; charset=utf-8 1354.2968ms
+2026-04-25 21:08:40.551 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/auth/login - null null
+2026-04-25 21:08:40.573 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:08:40.579 +03:00 [INF] HTTP OPTIONS /api/auth/login responded 204 in 6.2710 ms
+2026-04-25 21:08:40.593 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/auth/login - 204 null null 41.075ms
+2026-04-25 21:08:40.610 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5265/api/auth/login - application/json 44
+2026-04-25 21:08:40.618 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:08:40.651 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Auth.AuthController.Login (Portlink.Api)'
+2026-04-25 21:08:40.661 +03:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(Portlink.Api.DTOs.Auth.LoginRequest) on controller Portlink.Api.Modules.Auth.AuthController (Portlink.Api).
+2026-04-25 21:08:40.690 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__ToLower_0='?'], CommandType='"Text"', CommandTimeout='30']
+SELECT u."Id", u."CreatedAt", u."Email", u."IsActive", u."IsVerified", u."PasswordHash", u."Role", u."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId", s."Id", s."City", s."CompanyName", s."Country", s."CreatedAt", s."ExpertiseTags", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalCompleted", s."UpdatedAt", s."UserId"
+FROM "Users" AS u
+LEFT JOIN "AgentProfiles" AS a ON u."Id" = a."UserId"
+LEFT JOIN "SubcontractorProfiles" AS s ON u."Id" = s."UserId"
+WHERE u."Email" = @__ToLower_0
+LIMIT 1
+2026-04-25 21:08:40.701 +03:00 [INF] Executed action Portlink.Api.Modules.Auth.AuthController.Login (Portlink.Api) in 33.1221ms
+2026-04-25 21:08:40.707 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Auth.AuthController.Login (Portlink.Api)'
+2026-04-25 21:08:40.713 +03:00 [ERR] HTTP POST /api/auth/login responded 500 in 95.1119 ms
+System.UnauthorizedAccessException: E-posta veya şifre hatalı.
+   at Portlink.Api.Modules.Auth.AuthService.LoginAsync(LoginRequest req) in C:\Users\sudef\Desktop\Portlink.Api\Modules\Auth\AuthService.cs:line 91
+   at Portlink.Api.Modules.Auth.AuthController.Login(LoginRequest req) in C:\Users\sudef\Desktop\Portlink.Api\Modules\Auth\AuthController.cs:line 40
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+2026-04-25 21:08:40.750 +03:00 [ERR] Sunucu hatası oluştu: E-posta veya şifre hatalı.
+System.UnauthorizedAccessException: E-posta veya şifre hatalı.
+   at Portlink.Api.Modules.Auth.AuthService.LoginAsync(LoginRequest req) in C:\Users\sudef\Desktop\Portlink.Api\Modules\Auth\AuthService.cs:line 91
+   at Portlink.Api.Modules.Auth.AuthController.Login(LoginRequest req) in C:\Users\sudef\Desktop\Portlink.Api\Modules\Auth\AuthController.cs:line 40
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.TaskOfIActionResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Serilog.AspNetCore.RequestLoggingMiddleware.Invoke(HttpContext httpContext)
+   at AspNetCoreRateLimit.RateLimitMiddleware`1.Invoke(HttpContext context) in C:\Users\User\Documents\Github\AspNetCoreRateLimit\src\AspNetCoreRateLimit\Middleware\RateLimitMiddleware.cs:line 124
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at Portlink.Api.Middlewares.ExceptionMiddleware.InvokeAsync(HttpContext httpContext) in C:\Users\sudef\Desktop\Portlink.Api\Middlewares\ExceptionMiddleware.cs:line 23
+2026-04-25 21:08:40.780 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5265/api/auth/login - 401 null application/json 170.1597ms
+2026-04-25 21:09:15.591 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/auth/register/agent - null null
+2026-04-25 21:09:15.603 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:15.608 +03:00 [INF] HTTP OPTIONS /api/auth/register/agent responded 204 in 5.0848 ms
+2026-04-25 21:09:15.623 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/auth/register/agent - 204 null null 32.4991ms
+2026-04-25 21:09:15.644 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5265/api/auth/register/agent - application/json 179
+2026-04-25 21:09:15.664 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:15.671 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Auth.AuthController.RegisterAgent (Portlink.Api)'
+2026-04-25 21:09:15.681 +03:00 [INF] Route matched with {action = "RegisterAgent", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RegisterAgent(Portlink.Api.DTOs.Auth.RegisterAgentRequest) on controller Portlink.Api.Modules.Auth.AuthController (Portlink.Api).
+2026-04-25 21:09:15.729 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__ToLower_0='?'], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Users" AS u
+    WHERE u."Email" = @__ToLower_0)
+2026-04-25 21:09:16.694 +03:00 [INF] Executed DbCommand (7ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?', @p3='?' (DbType = Boolean), @p4='?' (DbType = Boolean), @p5='?', @p6='?', @p7='?' (DbType = DateTime), @p8='?' (DbType = Guid), @p9='?', @p10='?', @p11='?', @p12='?' (DbType = DateTime), @p13='?', @p14='?' (DbType = Boolean), @p15='?', @p16='?', @p17='?' (DbType = Decimal), @p18='?', @p19='?' (DbType = Int32), @p20='?' (DbType = DateTime), @p21='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "Users" ("Id", "CreatedAt", "Email", "IsActive", "IsVerified", "PasswordHash", "Role", "UpdatedAt")
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7);
+INSERT INTO "AgentProfiles" ("Id", "City", "CompanyName", "Country", "CreatedAt", "FullName", "IsVerified", "LogoUrl", "Phone", "Rating", "TaxNumber", "TotalJobs", "UpdatedAt", "UserId")
+VALUES (@p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21);
+2026-04-25 21:09:16.709 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (DbType = DateTime), @p2='?' (DbType = DateTime), @p3='?', @p4='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO "RefreshTokens" ("Id", "CreatedAt", "ExpiresAt", "TokenHash", "UserId")
+VALUES (@p0, @p1, @p2, @p3, @p4);
+2026-04-25 21:09:16.717 +03:00 [INF] Executing ObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Auth.AuthResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:16.721 +03:00 [INF] Executed action Portlink.Api.Modules.Auth.AuthController.RegisterAgent (Portlink.Api) in 1028.6598ms
+2026-04-25 21:09:16.724 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Auth.AuthController.RegisterAgent (Portlink.Api)'
+2026-04-25 21:09:16.726 +03:00 [INF] HTTP POST /api/auth/register/agent responded 201 in 1062.0594 ms
+2026-04-25 21:09:16.730 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5265/api/auth/register/agent - 201 null application/json; charset=utf-8 1085.6015ms
+2026-04-25 21:09:31.257 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs - null null
+2026-04-25 21:09:31.272 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:31.278 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 5.8146 ms
+2026-04-25 21:09:31.289 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs - 204 null null 31.7665ms
+2026-04-25 21:09:31.306 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5265/api/agent/jobs - application/json 288
+2026-04-25 21:09:31.324 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:31.337 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.CreateJob (Portlink.Api)'
+2026-04-25 21:09:31.349 +03:00 [INF] Route matched with {action = "CreateJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateJob(Portlink.Api.DTOs.Jobs.CreateJobListingRequest) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:31.412 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:31.642 +03:00 [INF] Executed DbCommand (90ms) [Parameters=[@p1='?' (DbType = Guid), @p0='?' (DbType = Int32), @p2='?' (DbType = Guid), @p3='?' (DbType = Guid), @p4='?' (DbType = Decimal), @p5='?' (DbType = Decimal), @p6='?', @p7='?' (DbType = DateTime), @p8='?', @p9='?' (DbType = DateTime), @p10='?' (DbType = DateTime), @p11='?', @p12='?', @p13='?', @p14='?' (DbType = Int32), @p15='?', @p16='?' (DbType = Guid), @p17='?', @p18='?' (DbType = Object), @p19='?', @p20='?', @p21='?', @p22='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+UPDATE "AgentProfiles" SET "TotalJobs" = @p0
+WHERE "Id" = @p1;
+INSERT INTO "JobListings" ("Id", "AgentId", "BudgetMax", "BudgetMin", "Category", "CreatedAt", "Currency", "Deadline", "Eta", "ListingType", "Location", "NeedText", "OfferCount", "PortCode", "PortId", "PortName", "SelectedServices", "ShipName", "Status", "Title", "UpdatedAt")
+VALUES (@p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21, @p22);
+2026-04-25 21:09:31.658 +03:00 [INF] Executing ObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:31.685 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.CreateJob (Portlink.Api) in 325.2191ms
+2026-04-25 21:09:31.688 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.CreateJob (Portlink.Api)'
+2026-04-25 21:09:31.697 +03:00 [INF] HTTP POST /api/agent/jobs responded 201 in 372.7389 ms
+2026-04-25 21:09:31.709 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5265/api/agent/jobs - 201 null application/json; charset=utf-8 402.1098ms
+2026-04-25 21:09:33.369 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:33.371 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:33.381 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:33.395 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:33.399 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 18.2923 ms
+2026-04-25 21:09:33.404 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 9.2261 ms
+2026-04-25 21:09:33.415 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 45.4597ms
+2026-04-25 21:09:33.424 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 53.2582ms
+2026-04-25 21:09:33.442 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:33.474 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:33.482 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:33.497 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:33.526 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:33.591 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:09:33.624 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:33.636 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 130.3372ms
+2026-04-25 21:09:33.639 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:33.641 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:33.658 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:33.664 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 189.7710 ms
+2026-04-25 21:09:33.670 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:33.676 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 234.3033ms
+2026-04-25 21:09:33.681 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:33.701 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:33.717 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:09:33.729 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:33.739 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 42.2953ms
+2026-04-25 21:09:33.743 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:33.749 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 91.0618 ms
+2026-04-25 21:09:33.761 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 121.7504ms
+2026-04-25 21:09:44.178 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:44.178 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:44.189 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:44.202 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:44.205 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 204 in 16.3110 ms
+2026-04-25 21:09:44.206 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 204 in 4.5889 ms
+2026-04-25 21:09:44.210 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 204 null null 32.7834ms
+2026-04-25 21:09:44.217 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 204 null null 38.4498ms
+2026-04-25 21:09:44.229 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:44.256 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:44.262 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:44.275 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:44.294 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:44.377 +03:00 [INF] Executed DbCommand (8ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:09:44.398 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:44.419 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 133.1969ms
+2026-04-25 21:09:44.420 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:44.425 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:44.441 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:44.448 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 200 in 191.4809 ms
+2026-04-25 21:09:44.454 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:44.464 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 200 null application/json; charset=utf-8 234.4278ms
+2026-04-25 21:09:44.468 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:44.487 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - null null
+2026-04-25 21:09:44.501 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:44.509 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:44.523 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers responded 204 in 14.3113 ms
+2026-04-25 21:09:44.524 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:09:44.535 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - 204 null null 48.2347ms
+2026-04-25 21:09:44.549 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:44.556 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - null null
+2026-04-25 21:09:44.560 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 61.8754ms
+2026-04-25 21:09:44.573 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:44.578 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:44.586 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 200 in 144.6031 ms
+2026-04-25 21:09:44.588 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:44.590 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 200 null application/json; charset=utf-8 170.0175ms
+2026-04-25 21:09:44.604 +03:00 [INF] Route matched with {action = "GetJobOffers", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobOffers(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:44.627 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:44.647 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "JobListings" AS j
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1)
+2026-04-25 21:09:44.692 +03:00 [INF] Executed DbCommand (10ms) [Parameters=[@__jobId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT o."Id", o."JobId", j."Title" AS "JobTitle", o."SubcontractorId", s."CompanyName" AS "SubcontractorCompanyName", s."LogoUrl" AS "SubcontractorLogoUrl", s."Rating" AS "SubcontractorRating", o."Price", o."Currency", o."EstimatedDays", o."CoverNote", o."Status", o."CreatedAt"
+FROM "Offers" AS o
+INNER JOIN "JobListings" AS j ON o."JobId" = j."Id"
+INNER JOIN "SubcontractorProfiles" AS s ON o."SubcontractorId" = s."Id"
+WHERE o."JobId" = @__jobId_0
+ORDER BY o."CreatedAt" DESC
+2026-04-25 21:09:44.708 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Offers.OfferResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:44.723 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api) in 101.8491ms
+2026-04-25 21:09:44.725 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - null null
+2026-04-25 21:09:44.729 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:44.744 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:44.749 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers responded 200 in 175.8631 ms
+2026-04-25 21:09:44.755 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:44.767 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - 200 null application/json; charset=utf-8 210.5138ms
+2026-04-25 21:09:44.771 +03:00 [INF] Route matched with {action = "GetJobOffers", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobOffers(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:44.793 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:44.807 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "JobListings" AS j
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1)
+2026-04-25 21:09:44.823 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT o."Id", o."JobId", j."Title" AS "JobTitle", o."SubcontractorId", s."CompanyName" AS "SubcontractorCompanyName", s."LogoUrl" AS "SubcontractorLogoUrl", s."Rating" AS "SubcontractorRating", o."Price", o."Currency", o."EstimatedDays", o."CoverNote", o."Status", o."CreatedAt"
+FROM "Offers" AS o
+INNER JOIN "JobListings" AS j ON o."JobId" = j."Id"
+INNER JOIN "SubcontractorProfiles" AS s ON o."SubcontractorId" = s."Id"
+WHERE o."JobId" = @__jobId_0
+ORDER BY o."CreatedAt" DESC
+2026-04-25 21:09:44.838 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Offers.OfferResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:44.847 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api) in 56.1243ms
+2026-04-25 21:09:44.854 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:44.859 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers responded 200 in 115.6623 ms
+2026-04-25 21:09:44.872 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - 200 null application/json; charset=utf-8 147.6749ms
+2026-04-25 21:09:46.003 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:46.007 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:46.008 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:46.016 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:46.024 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:46.038 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:09:46.053 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:46.062 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 41.8278ms
+2026-04-25 21:09:46.064 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:46.071 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:46.084 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:46.087 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 200 in 80.7448 ms
+2026-04-25 21:09:46.093 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:46.105 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 200 null application/json; charset=utf-8 102.2538ms
+2026-04-25 21:09:46.110 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:46.140 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:46.151 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:09:46.165 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:46.172 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 35.1104ms
+2026-04-25 21:09:46.175 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:46.184 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 200 in 99.2364 ms
+2026-04-25 21:09:46.192 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 200 null application/json; charset=utf-8 127.3137ms
+2026-04-25 21:09:52.634 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:52.634 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:52.644 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:52.655 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:52.657 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 204 in 13.1480 ms
+2026-04-25 21:09:52.659 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 204 in 4.0357 ms
+2026-04-25 21:09:52.667 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 204 null null 32.8718ms
+2026-04-25 21:09:52.675 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 204 null null 41.0062ms
+2026-04-25 21:09:52.695 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:52.729 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:52.734 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:52.740 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:52.750 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:52.763 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:09:52.774 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:52.785 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 37.0151ms
+2026-04-25 21:09:52.788 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:52.793 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:52.807 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:52.812 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 200 in 83.3858 ms
+2026-04-25 21:09:52.818 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:52.829 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 200 null application/json; charset=utf-8 133.6594ms
+2026-04-25 21:09:52.832 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:52.852 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - null null
+2026-04-25 21:09:52.865 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:52.875 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:52.891 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:09:52.893 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers responded 204 in 18.0428 ms
+2026-04-25 21:09:52.910 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:52.921 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - 204 null null 69.0802ms
+2026-04-25 21:09:52.929 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 66.7517ms
+2026-04-25 21:09:52.948 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - null null
+2026-04-25 21:09:52.955 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:52.970 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:52.972 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 200 in 165.6937 ms
+2026-04-25 21:09:52.976 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:52.983 +03:00 [INF] Route matched with {action = "GetJobOffers", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobOffers(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:52.980 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 200 null application/json; charset=utf-8 191.3742ms
+2026-04-25 21:09:52.990 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:53.009 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "JobListings" AS j
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1)
+2026-04-25 21:09:53.015 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT o."Id", o."JobId", j."Title" AS "JobTitle", o."SubcontractorId", s."CompanyName" AS "SubcontractorCompanyName", s."LogoUrl" AS "SubcontractorLogoUrl", s."Rating" AS "SubcontractorRating", o."Price", o."Currency", o."EstimatedDays", o."CoverNote", o."Status", o."CreatedAt"
+FROM "Offers" AS o
+INNER JOIN "JobListings" AS j ON o."JobId" = j."Id"
+INNER JOIN "SubcontractorProfiles" AS s ON o."SubcontractorId" = s."Id"
+WHERE o."JobId" = @__jobId_0
+ORDER BY o."CreatedAt" DESC
+2026-04-25 21:09:53.021 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Offers.OfferResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:53.029 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api) in 41.4033ms
+2026-04-25 21:09:53.031 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - null null
+2026-04-25 21:09:53.034 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:53.044 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:53.047 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers responded 200 in 77.5646 ms
+2026-04-25 21:09:53.051 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:53.054 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - 200 null application/json; charset=utf-8 105.9966ms
+2026-04-25 21:09:53.057 +03:00 [INF] Route matched with {action = "GetJobOffers", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobOffers(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:53.074 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:53.080 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "JobListings" AS j
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1)
+2026-04-25 21:09:53.089 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT o."Id", o."JobId", j."Title" AS "JobTitle", o."SubcontractorId", s."CompanyName" AS "SubcontractorCompanyName", s."LogoUrl" AS "SubcontractorLogoUrl", s."Rating" AS "SubcontractorRating", o."Price", o."Currency", o."EstimatedDays", o."CoverNote", o."Status", o."CreatedAt"
+FROM "Offers" AS o
+INNER JOIN "JobListings" AS j ON o."JobId" = j."Id"
+INNER JOIN "SubcontractorProfiles" AS s ON o."SubcontractorId" = s."Id"
+WHERE o."JobId" = @__jobId_0
+ORDER BY o."CreatedAt" DESC
+2026-04-25 21:09:53.098 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Offers.OfferResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:53.102 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api) in 30.7782ms
+2026-04-25 21:09:53.106 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:53.111 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers responded 200 in 67.2366 ms
+2026-04-25 21:09:53.119 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - 200 null application/json; charset=utf-8 88.3622ms
+2026-04-25 21:09:54.264 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:54.264 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:54.271 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:54.277 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:54.280 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 9.7042 ms
+2026-04-25 21:09:54.284 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 7.9729 ms
+2026-04-25 21:09:54.302 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 38.1652ms
+2026-04-25 21:09:54.309 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 45.2399ms
+2026-04-25 21:09:54.322 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:54.346 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:54.351 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:54.357 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:54.370 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:54.385 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:09:54.398 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:54.401 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 33.793ms
+2026-04-25 21:09:54.402 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:54.404 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:54.414 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:54.420 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 74.3833 ms
+2026-04-25 21:09:54.424 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:54.431 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 109.5392ms
+2026-04-25 21:09:54.435 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:54.454 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:54.468 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:09:54.475 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:54.485 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 33.0604ms
+2026-04-25 21:09:54.488 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:54.492 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 77.5877 ms
+2026-04-25 21:09:54.499 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 96.5988ms
+2026-04-25 21:09:55.731 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:55.745 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:55.748 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:55.750 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:55.756 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:55.764 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:09:55.775 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:55.785 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 32.0858ms
+2026-04-25 21:09:55.786 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - null null
+2026-04-25 21:09:55.789 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:55.804 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:55.808 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 200 in 63.5804 ms
+2026-04-25 21:09:55.814 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:55.820 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 200 null application/json; charset=utf-8 89.3476ms
+2026-04-25 21:09:55.821 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:55.834 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - null null
+2026-04-25 21:09:55.841 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:55.854 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:55.864 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:09:55.866 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:55.875 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:09:55.880 +03:00 [INF] Route matched with {action = "GetJobOffers", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobOffers(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:55.888 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 47.949ms
+2026-04-25 21:09:55.893 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:55.896 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:09:55.906 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "JobListings" AS j
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1)
+2026-04-25 21:09:55.908 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 responded 200 in 103.6748 ms
+2026-04-25 21:09:55.922 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT o."Id", o."JobId", j."Title" AS "JobTitle", o."SubcontractorId", s."CompanyName" AS "SubcontractorCompanyName", s."LogoUrl" AS "SubcontractorLogoUrl", s."Rating" AS "SubcontractorRating", o."Price", o."Currency", o."EstimatedDays", o."CoverNote", o."Status", o."CreatedAt"
+FROM "Offers" AS o
+INNER JOIN "JobListings" AS j ON o."JobId" = j."Id"
+INNER JOIN "SubcontractorProfiles" AS s ON o."SubcontractorId" = s."Id"
+WHERE o."JobId" = @__jobId_0
+ORDER BY o."CreatedAt" DESC
+2026-04-25 21:09:55.928 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9 - 200 null application/json; charset=utf-8 141.9011ms
+2026-04-25 21:09:55.937 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Offers.OfferResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:55.960 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api) in 69.4448ms
+2026-04-25 21:09:55.961 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - null null
+2026-04-25 21:09:55.967 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:55.980 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:55.984 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers responded 200 in 129.1683 ms
+2026-04-25 21:09:55.986 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:55.991 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - 200 null application/json; charset=utf-8 156.3336ms
+2026-04-25 21:09:55.992 +03:00 [INF] Route matched with {action = "GetJobOffers", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobOffers(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:56.002 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:56.007 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "JobListings" AS j
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1)
+2026-04-25 21:09:56.011 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT o."Id", o."JobId", j."Title" AS "JobTitle", o."SubcontractorId", s."CompanyName" AS "SubcontractorCompanyName", s."LogoUrl" AS "SubcontractorLogoUrl", s."Rating" AS "SubcontractorRating", o."Price", o."Currency", o."EstimatedDays", o."CoverNote", o."Status", o."CreatedAt"
+FROM "Offers" AS o
+INNER JOIN "JobListings" AS j ON o."JobId" = j."Id"
+INNER JOIN "SubcontractorProfiles" AS s ON o."SubcontractorId" = s."Id"
+WHERE o."JobId" = @__jobId_0
+ORDER BY o."CreatedAt" DESC
+2026-04-25 21:09:56.017 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Offers.OfferResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:56.020 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api) in 20.5712ms
+2026-04-25 21:09:56.022 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:09:56.024 +03:00 [INF] HTTP GET /api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers responded 200 in 43.7981 ms
+2026-04-25 21:09:56.031 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/74660621-9238-4bd4-bb15-5afeaa4331d9/offers - 200 null application/json; charset=utf-8 69.0869ms
+2026-04-25 21:09:57.166 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:57.176 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:57.178 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:57.180 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:57.186 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:57.192 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:09:57.204 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:57.211 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 27.5938ms
+2026-04-25 21:09:57.213 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:09:57.217 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:57.225 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:09:57.229 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 52.6558 ms
+2026-04-25 21:09:57.232 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:57.237 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 71.388ms
+2026-04-25 21:09:57.240 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:09:57.252 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:09:57.261 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:09:57.268 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:09:57.271 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 20.293ms
+2026-04-25 21:09:57.273 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:09:57.277 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 51.7455 ms
+2026-04-25 21:09:57.283 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 69.347ms
+2026-04-25 21:11:03.255 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:03.255 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:03.266 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:03.276 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:03.277 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 10.7615 ms
+2026-04-25 21:11:03.280 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 3.9407 ms
+2026-04-25 21:11:03.283 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 28.1385ms
+2026-04-25 21:11:03.286 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 30.5958ms
+2026-04-25 21:11:03.293 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:03.302 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:03.304 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:03.308 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:03.316 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:03.329 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:11:03.343 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:11:03.348 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 35.2919ms
+2026-04-25 21:11:03.349 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:03.351 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:03.361 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:03.364 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 62.0947 ms
+2026-04-25 21:11:03.368 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:03.372 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 79.1309ms
+2026-04-25 21:11:03.375 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:03.389 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:03.401 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:11:03.410 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:11:03.415 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 27.1496ms
+2026-04-25 21:11:03.418 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:03.420 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 58.6542 ms
+2026-04-25 21:11:03.426 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 76.4945ms
+2026-04-25 21:11:18.595 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs - null null
+2026-04-25 21:11:18.612 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:18.618 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 6.2366 ms
+2026-04-25 21:11:18.632 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs - 204 null null 37.0773ms
+2026-04-25 21:11:18.653 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5265/api/agent/jobs - application/json 297
+2026-04-25 21:11:18.674 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:18.678 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.CreateJob (Portlink.Api)'
+2026-04-25 21:11:18.683 +03:00 [INF] Route matched with {action = "CreateJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] CreateJob(Portlink.Api.DTOs.Jobs.CreateJobListingRequest) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:18.696 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:18.709 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@p1='?' (DbType = Guid), @p0='?' (DbType = Int32), @p2='?' (DbType = Guid), @p3='?' (DbType = Guid), @p4='?' (DbType = Decimal), @p5='?' (DbType = Decimal), @p6='?', @p7='?' (DbType = DateTime), @p8='?', @p9='?' (DbType = DateTime), @p10='?' (DbType = DateTime), @p11='?', @p12='?', @p13='?', @p14='?' (DbType = Int32), @p15='?', @p16='?' (DbType = Guid), @p17='?', @p18='?' (DbType = Object), @p19='?', @p20='?', @p21='?', @p22='?' (DbType = DateTime)], CommandType='"Text"', CommandTimeout='30']
+UPDATE "AgentProfiles" SET "TotalJobs" = @p0
+WHERE "Id" = @p1;
+INSERT INTO "JobListings" ("Id", "AgentId", "BudgetMax", "BudgetMin", "Category", "CreatedAt", "Currency", "Deadline", "Eta", "ListingType", "Location", "NeedText", "OfferCount", "PortCode", "PortId", "PortName", "SelectedServices", "ShipName", "Status", "Title", "UpdatedAt")
+VALUES (@p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20, @p21, @p22);
+2026-04-25 21:11:18.722 +03:00 [INF] Executing ObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:11:18.727 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.CreateJob (Portlink.Api) in 35.087ms
+2026-04-25 21:11:18.731 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.CreateJob (Portlink.Api)'
+2026-04-25 21:11:18.735 +03:00 [INF] HTTP POST /api/agent/jobs responded 201 in 61.8147 ms
+2026-04-25 21:11:18.743 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5265/api/agent/jobs - 201 null application/json; charset=utf-8 89.5378ms
+2026-04-25 21:11:19.723 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:19.723 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:19.731 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:19.742 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:19.746 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 14.9563 ms
+2026-04-25 21:11:19.749 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 6.9921 ms
+2026-04-25 21:11:19.756 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 33.6023ms
+2026-04-25 21:11:19.761 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 37.6541ms
+2026-04-25 21:11:19.780 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:19.804 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:19.808 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:19.810 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:19.815 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:19.821 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:11:19.827 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:11:19.829 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 16.1118ms
+2026-04-25 21:11:19.830 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:19.831 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:19.838 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:19.840 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 36.1796 ms
+2026-04-25 21:11:19.843 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:19.846 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 65.835ms
+2026-04-25 21:11:19.848 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:19.861 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:19.870 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:11:19.880 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:11:19.885 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 26.5686ms
+2026-04-25 21:11:19.889 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:19.891 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 53.2553 ms
+2026-04-25 21:11:19.896 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 65.4385ms
+2026-04-25 21:11:20.810 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - null null
+2026-04-25 21:11:20.810 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - null null
+2026-04-25 21:11:20.820 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:20.826 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:20.827 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 responded 204 in 7.0950 ms
+2026-04-25 21:11:20.830 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 responded 204 in 4.6300 ms
+2026-04-25 21:11:20.839 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - 204 null null 29.003ms
+2026-04-25 21:11:20.848 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - 204 null null 37.7596ms
+2026-04-25 21:11:20.866 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - null null
+2026-04-25 21:11:20.895 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:20.897 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:11:20.901 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:20.921 +03:00 [INF] Executed DbCommand (15ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:20.940 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:11:20.948 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:11:20.952 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 47.4848ms
+2026-04-25 21:11:20.953 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - null null
+2026-04-25 21:11:20.956 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:11:20.966 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:20.971 +03:00 [INF] HTTP GET /api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 responded 200 in 76.1286 ms
+2026-04-25 21:11:20.975 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:11:20.979 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - 200 null application/json; charset=utf-8 113.2641ms
+2026-04-25 21:11:20.983 +03:00 [INF] Route matched with {action = "GetJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:20.998 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966/offers - null null
+2026-04-25 21:11:21.009 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:21.020 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:21.034 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT s."Id", s."AgentId", s."BudgetMax", s."BudgetMin", s."Category", s."CreatedAt", s."Currency", s."Deadline", s."Eta", s."ListingType", s."Location", s."NeedText", s."OfferCount", s."PortCode", s."PortId", s."PortName", s."SelectedServices", s."ShipName", s."Status", s."Title", s."UpdatedAt", s."Id0", s."City", s."CompanyName", s."Country", s."CreatedAt0", s."FullName", s."IsVerified", s."LogoUrl", s."Phone", s."Rating", s."TaxNumber", s."TotalJobs", s."UpdatedAt0", s."UserId", j0."Id", j0."CreatedAt", j0."FileName", j0."FileSize", j0."FileType", j0."FileUrl", j0."JobId", j0."UploadedBy"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt", a."Id" AS "Id0", a."City", a."CompanyName", a."Country", a."CreatedAt" AS "CreatedAt0", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt" AS "UpdatedAt0", a."UserId"
+    FROM "JobListings" AS j
+    INNER JOIN "AgentProfiles" AS a ON j."AgentId" = a."Id"
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+    LIMIT 1
+) AS s
+LEFT JOIN "JobFiles" AS j0 ON s."Id" = j0."JobId"
+ORDER BY s."Id", s."Id0"
+2026-04-25 21:11:21.036 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966/offers responded 204 in 16.4503 ms
+2026-04-25 21:11:21.048 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[Portlink.Api.DTOs.Jobs.JobListingDetailResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-25 21:11:21.056 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966/offers - 204 null null 57.5461ms
+2026-04-25 21:11:21.059 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api) in 51.836ms
+2026-04-25 21:11:21.075 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966/offers - null null
+2026-04-25 21:11:21.084 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJob (Portlink.Api)'
+2026-04-25 21:11:21.103 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:21.107 +03:00 [INF] HTTP GET /api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 responded 200 in 140.9313 ms
+2026-04-25 21:11:21.111 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:11:21.119 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - 200 null application/json; charset=utf-8 165.3471ms
+2026-04-25 21:11:21.122 +03:00 [INF] Route matched with {action = "GetJobOffers", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobOffers(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:21.142 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:21.159 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "JobListings" AS j
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1)
+2026-04-25 21:11:21.176 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT o."Id", o."JobId", j."Title" AS "JobTitle", o."SubcontractorId", s."CompanyName" AS "SubcontractorCompanyName", s."LogoUrl" AS "SubcontractorLogoUrl", s."Rating" AS "SubcontractorRating", o."Price", o."Currency", o."EstimatedDays", o."CoverNote", o."Status", o."CreatedAt"
+FROM "Offers" AS o
+INNER JOIN "JobListings" AS j ON o."JobId" = j."Id"
+INNER JOIN "SubcontractorProfiles" AS s ON o."SubcontractorId" = s."Id"
+WHERE o."JobId" = @__jobId_0
+ORDER BY o."CreatedAt" DESC
+2026-04-25 21:11:21.191 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Offers.OfferResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:11:21.203 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api) in 62.7707ms
+2026-04-25 21:11:21.205 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966/offers - null null
+2026-04-25 21:11:21.208 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:11:21.226 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:21.232 +03:00 [INF] HTTP GET /api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966/offers responded 200 in 129.0472 ms
+2026-04-25 21:11:21.237 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:11:21.247 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966/offers - 200 null application/json; charset=utf-8 171.8504ms
+2026-04-25 21:11:21.250 +03:00 [INF] Route matched with {action = "GetJobOffers", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobOffers(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:21.264 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:21.271 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "JobListings" AS j
+    WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1)
+2026-04-25 21:11:21.277 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT o."Id", o."JobId", j."Title" AS "JobTitle", o."SubcontractorId", s."CompanyName" AS "SubcontractorCompanyName", s."LogoUrl" AS "SubcontractorLogoUrl", s."Rating" AS "SubcontractorRating", o."Price", o."Currency", o."EstimatedDays", o."CoverNote", o."Status", o."CreatedAt"
+FROM "Offers" AS o
+INNER JOIN "JobListings" AS j ON o."JobId" = j."Id"
+INNER JOIN "SubcontractorProfiles" AS s ON o."SubcontractorId" = s."Id"
+WHERE o."JobId" = @__jobId_0
+ORDER BY o."CreatedAt" DESC
+2026-04-25 21:11:21.285 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Offers.OfferResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:11:21.290 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api) in 27.8036ms
+2026-04-25 21:11:21.294 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobOffers (Portlink.Api)'
+2026-04-25 21:11:21.299 +03:00 [INF] HTTP GET /api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966/offers responded 200 in 73.0369 ms
+2026-04-25 21:11:21.308 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966/offers - 200 null application/json; charset=utf-8 102.7098ms
+2026-04-25 21:11:24.116 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - null null
+2026-04-25 21:11:24.127 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:24.132 +03:00 [INF] HTTP OPTIONS /api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 responded 204 in 4.9930 ms
+2026-04-25 21:11:24.144 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - 204 null null 28.4953ms
+2026-04-25 21:11:24.157 +03:00 [INF] Request starting HTTP/1.1 DELETE http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - null null
+2026-04-25 21:11:24.172 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:24.177 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.DeleteJob (Portlink.Api)'
+2026-04-25 21:11:24.188 +03:00 [INF] Route matched with {action = "DeleteJob", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] DeleteJob(System.Guid) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:24.204 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:24.227 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__jobId_0='?' (DbType = Guid), @__agent_Id_1='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+FROM "JobListings" AS j
+WHERE j."Id" = @__jobId_0 AND j."AgentId" = @__agent_Id_1
+LIMIT 1
+2026-04-25 21:11:24.258 +03:00 [INF] Executed DbCommand (13ms) [Parameters=[@p0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+DELETE FROM "JobListings"
+WHERE "Id" = @p0;
+2026-04-25 21:11:24.276 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse'.
+2026-04-25 21:11:24.289 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.DeleteJob (Portlink.Api) in 93.7629ms
+2026-04-25 21:11:24.296 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.DeleteJob (Portlink.Api)'
+2026-04-25 21:11:24.303 +03:00 [INF] HTTP DELETE /api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 responded 200 in 131.0940 ms
+2026-04-25 21:11:24.312 +03:00 [INF] Request finished HTTP/1.1 DELETE http://localhost:5265/api/agent/jobs/1f85ef2d-ad0b-478a-ad87-ca5825177966 - 200 null application/json; charset=utf-8 154.746ms
+2026-04-25 21:11:25.255 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:25.255 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:25.260 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:25.269 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:25.272 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 12.3088 ms
+2026-04-25 21:11:25.274 +03:00 [INF] HTTP OPTIONS /api/agent/jobs responded 204 in 4.6987 ms
+2026-04-25 21:11:25.278 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 23.1701ms
+2026-04-25 21:11:25.281 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 204 null null 25.7635ms
+2026-04-25 21:11:25.292 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:25.320 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:25.325 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:25.327 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:25.333 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:25.343 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:11:25.354 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:11:25.356 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 24.8416ms
+2026-04-25 21:11:25.359 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:25.358 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - null null
+2026-04-25 21:11:25.361 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 41.8532 ms
+2026-04-25 21:11:25.370 +03:00 [INF] CORS policy execution successful.
+2026-04-25 21:11:25.374 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 81.8092ms
+2026-04-25 21:11:25.375 +03:00 [INF] Executing endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:25.385 +03:00 [INF] Route matched with {action = "GetJobs", controller = "Agent"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobs(System.String, System.String, Int32, Int32) on controller Portlink.Api.Modules.Agent.AgentController (Portlink.Api).
+2026-04-25 21:11:25.393 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='"Text"', CommandTimeout='30']
+SELECT a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM "AgentProfiles" AS a
+WHERE a."UserId" = @__userId_0
+LIMIT 1
+2026-04-25 21:11:25.408 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__agent_Id_0='?' (DbType = Guid), @__p_2='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT j0."Id", j0."AgentId", j0."BudgetMax", j0."BudgetMin", j0."Category", j0."CreatedAt", j0."Currency", j0."Deadline", j0."Eta", j0."ListingType", j0."Location", j0."NeedText", j0."OfferCount", j0."PortCode", j0."PortId", j0."PortName", j0."SelectedServices", j0."ShipName", j0."Status", j0."Title", j0."UpdatedAt", a."Id", a."City", a."CompanyName", a."Country", a."CreatedAt", a."FullName", a."IsVerified", a."LogoUrl", a."Phone", a."Rating", a."TaxNumber", a."TotalJobs", a."UpdatedAt", a."UserId"
+FROM (
+    SELECT j."Id", j."AgentId", j."BudgetMax", j."BudgetMin", j."Category", j."CreatedAt", j."Currency", j."Deadline", j."Eta", j."ListingType", j."Location", j."NeedText", j."OfferCount", j."PortCode", j."PortId", j."PortName", j."SelectedServices", j."ShipName", j."Status", j."Title", j."UpdatedAt"
+    FROM "JobListings" AS j
+    WHERE j."AgentId" = @__agent_Id_0
+    ORDER BY j."CreatedAt" DESC
+    LIMIT @__p_2 OFFSET @__p_1
+) AS j0
+INNER JOIN "AgentProfiles" AS a ON j0."AgentId" = a."Id"
+ORDER BY j0."CreatedAt" DESC
+2026-04-25 21:11:25.415 +03:00 [INF] Executing OkObjectResult, writing value of type 'Portlink.Api.DTOs.Common.ApiResponse`1[[System.Collections.Generic.List`1[[Portlink.Api.DTOs.Jobs.JobListingResponse, Portlink.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-25 21:11:25.424 +03:00 [INF] Executed action Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api) in 32.2735ms
+2026-04-25 21:11:25.425 +03:00 [INF] Executed endpoint 'Portlink.Api.Modules.Agent.AgentController.GetJobs (Portlink.Api)'
+2026-04-25 21:11:25.427 +03:00 [INF] HTTP GET /api/agent/jobs responded 200 in 56.8679 ms
+2026-04-25 21:11:25.438 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5265/api/agent/jobs?page=1&pageSize=20 - 200 null application/json; charset=utf-8 80.1784ms
+2026-04-25 21:11:37.829 +03:00 [INF] Application is shutting down...

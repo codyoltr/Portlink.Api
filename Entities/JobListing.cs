@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Portlink.Api.Modules.Auth.Entities;
 
 namespace Portlink.Api.Entities;
 
