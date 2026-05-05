@@ -4,10 +4,11 @@ using Portlink.Api.DTOs.Jobs;
 using Portlink.Api.DTOs.Offers;
 using Portlink.Api.Entities;
 using Portlink.Api.Modules.Common.Dtos;
+using Portlink.Api.Modules.Subcontractor.Interfaces;
 
 namespace Portlink.Api.Modules.Subcontractor;
 
-public class SubcontractorService
+public class SubcontractorService : ISubcontractorService
 {
     private readonly AppDbContext _db;
 
@@ -287,6 +288,8 @@ public class SubcontractorService
         Id = a.Id,
         JobId = a.JobId,
         JobTitle = a.JobListing?.Title ?? string.Empty,
+        AgentUserId = a.Agent?.UserId ?? Guid.Empty,
+        SubcontractorUserId = a.Subcontractor?.UserId ?? Guid.Empty,
         AgentCompanyName = a.Agent?.CompanyName ?? string.Empty,
         SubcontractorCompanyName = a.Subcontractor?.CompanyName ?? string.Empty,
         Progress = a.Progress,

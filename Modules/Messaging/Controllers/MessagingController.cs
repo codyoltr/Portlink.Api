@@ -12,78 +12,83 @@ namespace Portlink.Api.Modules.Messaging;
 [Authorize]
 public class MessagingController : ControllerBase
 {
-    private readonly IMessagingService _msgSvc;
-    private readonly INotificationService _notifSvc;
+    private readonly IMessagingService _messagingService;
+    private readonly INotificationService _notificationService;
 
-    public MessagingController(IMessagingService msgSvc, INotificationService notifSvc)
+    public MessagingController(IMessagingService messagingService, INotificationService notificationService)
     {
-        _msgSvc = msgSvc;
-        _notifSvc = notifSvc;
+        _messagingService = messagingService;
+        _notificationService = notificationService;
     }
 
-    private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-    // ─── MESSAGES ────────────────────────────────────────────────────────────
-
-    // GET /api/messages/:assignedJobId
-    [HttpGet("api/messages/{assignedJobId:guid}")]
-    public async Task<IActionResult> GetMessages(Guid assignedJobId)
+    private Guid UserId
     {
-        var result = await _msgSvc.GetMessagesAsync(UserId, assignedJobId);
-        return Ok(ApiResponse<List<MessageResponse>>.Ok(result));
-    }
-
-    // POST /api/messages/:assignedJobId
-    [HttpPost("api/messages/{assignedJobId:guid}")]
-    public async Task<IActionResult> SendMessage(Guid assignedJobId, [FromBody] SendMessageRequest req, [FromQuery] Guid receiverId)
-    {
-        try
+        get
         {
-            var result = await _msgSvc.SendMessageAsync(UserId, assignedJobId, receiverId, req.Content);
-            return StatusCode(201, ApiResponse<MessageResponse>.Ok(result));
+            var claim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue(ClaimTypes.Name);
+
+            if (claim == null || !Guid.TryParse(claim, out var userId))
+            {
+                throw new UnauthorizedAccessException("Kimlik bilgisi alınamadı.");
+            }
+
+            return userId;
         }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
     }
 
-    // PUT /api/messages/:id/read
-    [HttpPut("api/messages/{id:guid}/read")]
-    public async Task<IActionResult> MarkMessageRead(Guid id)
+    [HttpPost("api/conversations/start")]
+    public async Task<IActionResult> StartConversation([FromBody] StartConversationRequest request)
     {
-        try
-        {
-            await _msgSvc.MarkReadAsync(UserId, id);
-            return Ok(ApiResponse.Ok("Okundu işaretlendi."));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        var result = await _messagingService.StartConversationAsync(UserId, request);
+        return Ok(ApiResponse<ConversationResponse>.Ok(result));
     }
 
-    // ─── NOTIFICATIONS ───────────────────────────────────────────────────────
+    [HttpGet("api/conversations")]
+    public async Task<IActionResult> GetConversations()
+    {
+        var result = await _messagingService.GetConversationsAsync(UserId);
+        return Ok(ApiResponse<List<ConversationResponse>>.Ok(result));
+    }
 
-    // GET /api/notifications
+    [HttpGet("api/conversations/{conversationId:guid}/messages")]
+    public async Task<IActionResult> GetMessages(Guid conversationId, [FromQuery] int page = 1, [FromQuery] int pageSize = 30)
+    {
+        var result = await _messagingService.GetMessagesAsync(UserId, conversationId, page, pageSize);
+        return Ok(ApiResponse<PaginatedResponse<ConversationMessageResponse>>.Ok(result));
+    }
+
+    [HttpPost("api/conversations/{conversationId:guid}/messages")]
+    public async Task<IActionResult> SendMessage(Guid conversationId, [FromBody] SendConversationMessageRequest request)
+    {
+        var result = await _messagingService.SendMessageAsync(UserId, conversationId, request);
+        return StatusCode(201, ApiResponse<ConversationMessageResponse>.Ok(result));
+    }
+
+    [HttpPost("api/conversations/{conversationId:guid}/read")]
+    public async Task<IActionResult> MarkConversationRead(Guid conversationId)
+    {
+        await _messagingService.MarkConversationReadAsync(UserId, conversationId);
+        return Ok(ApiResponse.Ok("Konuşma okundu olarak işaretlendi."));
+    }
+
     [HttpGet("api/notifications")]
     public async Task<IActionResult> GetNotifications([FromQuery] int page = 1, [FromQuery] int pageSize = 30)
     {
-        var result = await _notifSvc.GetNotificationsAsync(UserId, page, pageSize);
+        var result = await _notificationService.GetNotificationsAsync(UserId, page, pageSize);
         return Ok(ApiResponse<List<NotificationResponse>>.Ok(result));
     }
 
-    // PUT /api/notifications/:id/read
     [HttpPut("api/notifications/{id:guid}/read")]
     public async Task<IActionResult> MarkNotificationRead(Guid id)
     {
-        try
-        {
-            await _notifSvc.MarkReadAsync(UserId, id);
-            return Ok(ApiResponse.Ok("Okundu."));
-        }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        await _notificationService.MarkNotificationReadAsync(UserId, id);
+        return Ok(ApiResponse.Ok("Bildirim okundu olarak işaretlendi."));
     }
 
-    // PUT /api/notifications/read-all
     [HttpPut("api/notifications/read-all")]
     public async Task<IActionResult> MarkAllNotificationsRead()
     {
-        await _notifSvc.MarkAllReadAsync(UserId);
+        await _notificationService.MarkAllNotificationReadAsync(UserId);
         return Ok(ApiResponse.Ok("Tüm bildirimler okundu olarak işaretlendi."));
     }
 }

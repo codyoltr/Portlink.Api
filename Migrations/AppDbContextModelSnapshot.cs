@@ -79,6 +79,78 @@ namespace Portlink.Api.Migrations
                     b.ToTable("AssignedJobs");
                 });
 
+            modelBuilder.Entity("Portlink.Api.Entities.Conversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("JobListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastMessagePreview")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid>("SubcontractorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobListingId");
+
+                    b.HasIndex("SubcontractorId");
+
+                    b.HasIndex("AgentId", "SubcontractorId", "JobListingId")
+                        .IsUnique();
+
+                    b.ToTable("Conversations");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Entities.ConversationMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("ConversationMessages");
+                });
+
             modelBuilder.Entity("Portlink.Api.Entities.JobFile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -751,6 +823,51 @@ namespace Portlink.Api.Migrations
                     b.Navigation("Subcontractor");
                 });
 
+            modelBuilder.Entity("Portlink.Api.Entities.Conversation", b =>
+                {
+                    b.HasOne("Portlink.Api.Modules.Auth.Entities.AgentProfile", "Agent")
+                        .WithMany()
+                        .HasForeignKey("AgentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Portlink.Api.Entities.JobListing", "JobListing")
+                        .WithMany()
+                        .HasForeignKey("JobListingId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Portlink.Api.Entities.SubcontractorProfile", "Subcontractor")
+                        .WithMany()
+                        .HasForeignKey("SubcontractorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Agent");
+
+                    b.Navigation("JobListing");
+
+                    b.Navigation("Subcontractor");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Entities.ConversationMessage", b =>
+                {
+                    b.HasOne("Portlink.Api.Entities.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Portlink.Api.Entities.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("Portlink.Api.Entities.JobFile", b =>
                 {
                     b.HasOne("Portlink.Api.Entities.JobListing", "JobListing")
@@ -939,6 +1056,11 @@ namespace Portlink.Api.Migrations
                     b.Navigation("Messages");
 
                     b.Navigation("WalletTransactions");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Entities.Conversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.JobListing", b =>

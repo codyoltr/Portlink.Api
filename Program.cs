@@ -10,7 +10,9 @@ using Portlink.Api.Helpers;
 using Portlink.Api.Modules.Agent;
 using Portlink.Api.Modules.Auth;
 using Portlink.Api.Modules.Messaging;
+using Portlink.Api.Modules.Messaging.Interfaces;
 using Portlink.Api.Modules.Subcontractor;
+using Portlink.Api.Modules.Subcontractor.Interfaces;
 using Serilog;
 
 // ─── Serilog Bootstrap ────────────────────────────────────────────────────────
@@ -73,9 +75,9 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAgentService, AgentService>();
-builder.Services.AddScoped<SubcontractorService>();
-builder.Services.AddScoped<MessageService>();
-builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<ISubcontractorService, SubcontractorService>();
+builder.Services.AddScoped<IMessagingService, MessagingService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // ─── Controllers + JSON ───────────────────────────────────────────────────────
 builder.Services.AddControllers()

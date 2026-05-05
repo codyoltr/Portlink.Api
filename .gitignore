@@ -1,6 +1,6 @@
 # Build artifacts
-bin/
-obj/
+bin
+obj
 
 # Migration files (if you want to exclude them, otherwise keep them in source control)
 Migrations/
