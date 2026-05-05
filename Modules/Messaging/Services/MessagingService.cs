@@ -1,140 +1,498 @@
 using Microsoft.EntityFrameworkCore;
 using Portlink.Api.Data;
-using Portlink.Api.DTOs.Notifications;
 using Portlink.Api.Entities;
+using Portlink.Api.Modules.Common.Dtos;
 using Portlink.Api.Modules.Messaging.Dtos;
+using Portlink.Api.Modules.Messaging.Interfaces;
 
 namespace Portlink.Api.Modules.Messaging;
 
-public class MessageService
+public class MessagingService : IMessagingService
 {
+    private const string AgentRole = "agent";
+    private const string SubcontractorRole = "subcontractor";
+    private const int MaxMessageBodyLength = 4000;
+
     private readonly AppDbContext _db;
 
-    public MessageService(AppDbContext db) => _db = db;
-
-    public async Task<List<MessageResponse>> GetMessagesAsync(Guid userId, Guid assignedJobId)
+    public MessagingService(AppDbContext db)
     {
-        // Kullanıcının bu işe erişimi olmalı
-        var hasAccess = await _db.AssignedJobs.AnyAsync(a => a.Id == assignedJobId && (a.AgentId == GetAgentId(userId) || a.SubcontractorId == GetSubId(userId)));
-        // Basit erişim: gönderen veya alıcı olarak geçiyorsa göster
-        var messages = await _db.Messages
+        _db = db;
+    }
+
+    public async Task<ConversationResponse> StartConversationAsync(Guid userId, StartConversationRequest request)
+    {
+        var currentUser = await GetMessagingUserAsync(userId);
+        var resolvedOtherUserId = await ResolveOtherUserIdAsync(currentUser, request.OtherUserId);
+        var otherUser = await GetMessagingUserAsync(resolvedOtherUserId);
+
+        ValidateRolePair(currentUser.Role, otherUser.Role);
+
+        var job = await _db.JobListings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(j => j.Id == request.JobListingId)
+            ?? throw new KeyNotFoundException("İlan bulunamadı.");
+
+        var participantIds = ResolveParticipantIds(currentUser, otherUser);
+        await EnsureConversationCanBeStartedAsync(currentUser, otherUser, participantIds, job);
+
+        var existing = await _db.Conversations
+            .FirstOrDefaultAsync(c =>
+                c.AgentId == participantIds.AgentProfileId &&
+                c.SubcontractorId == participantIds.SubcontractorProfileId &&
+                c.JobListingId == request.JobListingId);
+
+        if (existing != null)
+        {
+            return await BuildConversationResponseAsync(existing.Id, userId);
+        }
+
+        var now = DateTime.UtcNow;
+        var conversation = new Conversation
+        {
+            AgentId = participantIds.AgentProfileId,
+            SubcontractorId = participantIds.SubcontractorProfileId,
+            JobListingId = request.JobListingId,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        _db.Conversations.Add(conversation);
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            _db.Entry(conversation).State = EntityState.Detached;
+
+            var concurrentConversation = await _db.Conversations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c =>
+                    c.AgentId == participantIds.AgentProfileId &&
+                    c.SubcontractorId == participantIds.SubcontractorProfileId &&
+                    c.JobListingId == request.JobListingId);
+
+            if (concurrentConversation != null)
+            {
+                return await BuildConversationResponseAsync(concurrentConversation.Id, userId);
+            }
+
+            throw;
+        }
+
+        return await BuildConversationResponseAsync(conversation.Id, userId);
+    }
+
+    private async Task<Guid> ResolveOtherUserIdAsync(MessagingUser currentUser, Guid requestedOtherUserId)
+    {
+        var existingUserId = await _db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == requestedOtherUserId && u.IsActive)
+            .Select(u => (Guid?)u.Id)
+            .FirstOrDefaultAsync();
+
+        if (existingUserId.HasValue)
+        {
+            return existingUserId.Value;
+        }
+
+        if (currentUser.Role == SubcontractorRole)
+        {
+            var agentUserId = await _db.AgentProfiles
+                .AsNoTracking()
+                .Where(a => a.Id == requestedOtherUserId)
+                .Select(a => (Guid?)a.UserId)
+                .FirstOrDefaultAsync();
+
+            if (agentUserId.HasValue)
+            {
+                return agentUserId.Value;
+            }
+        }
+        else if (currentUser.Role == AgentRole)
+        {
+            var subcontractorUserId = await _db.SubcontractorProfiles
+                .AsNoTracking()
+                .Where(s => s.Id == requestedOtherUserId)
+                .Select(s => (Guid?)s.UserId)
+                .FirstOrDefaultAsync();
+
+            if (subcontractorUserId.HasValue)
+            {
+                return subcontractorUserId.Value;
+            }
+        }
+
+        throw new KeyNotFoundException("KarÅŸÄ± kullanÄ±cÄ± bulunamadÄ±.");
+    }
+
+    public async Task<List<ConversationResponse>> GetConversationsAsync(Guid userId)
+    {
+        var currentUser = await GetMessagingUserAsync(userId);
+
+        var conversations = await _db.Conversations
+            .AsNoTracking()
+            .Include(c => c.JobListing)
+            .Include(c => c.Agent)
+            .Include(c => c.Subcontractor)
+            .Where(c =>
+                (currentUser.AgentProfileId.HasValue && c.AgentId == currentUser.AgentProfileId.Value) ||
+                (currentUser.SubcontractorProfileId.HasValue && c.SubcontractorId == currentUser.SubcontractorProfileId.Value))
+            .OrderByDescending(c => c.LastMessageAt ?? c.UpdatedAt)
+            .ThenByDescending(c => c.UpdatedAt)
+            .ToListAsync();
+
+        var participantUserIds = conversations
+            .SelectMany(c => new[] { c.Agent.UserId, c.Subcontractor.UserId })
+            .Distinct()
+            .ToList();
+
+        var users = await _db.Users
+            .AsNoTracking()
+            .Where(u => participantUserIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id);
+
+        var conversationIds = conversations.Select(c => c.Id).ToList();
+        var unreadCounts = await _db.ConversationMessages
+            .AsNoTracking()
+            .Where(m => conversationIds.Contains(m.ConversationId) && m.SenderId != userId && m.ReadAt == null)
+            .GroupBy(m => m.ConversationId)
+            .Select(g => new { ConversationId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ConversationId, x => x.Count);
+
+        return conversations.Select(c => MapConversationResponse(c, userId, users, unreadCounts)).ToList();
+    }
+
+    public async Task<PaginatedResponse<ConversationMessageResponse>> GetMessagesAsync(Guid userId, Guid conversationId, int page, int pageSize)
+    {
+        var conversation = await GetAuthorizedConversationAsync(userId, conversationId);
+        var currentUser = await GetMessagingUserAsync(userId);
+
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 30 : pageSize > 100 ? 100 : pageSize;
+
+        var query = _db.ConversationMessages
+            .AsNoTracking()
             .Include(m => m.Sender)
-            .Include(m => m.Receiver)
-            .Where(m => m.AssignedJobId == assignedJobId && (m.SenderId == userId || m.ReceiverId == userId))
+            .Where(m => m.ConversationId == conversation.Id);
+
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .OrderByDescending(m => m.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .OrderBy(m => m.CreatedAt)
             .ToListAsync();
 
-        return messages.Select(m => new MessageResponse
+        return new PaginatedResponse<ConversationMessageResponse>
         {
-            Id = m.Id,
-            AssignedJobId = m.AssignedJobId,
-            SenderId = m.SenderId,
-            SenderName = m.Sender.Email,   // Gerçek isim için profile join gerekir
-            ReceiverId = m.ReceiverId,
-            ReceiverName = m.Receiver.Email,
-            Content = m.Content,
-            IsRead = m.IsRead,
-            CreatedAt = m.CreatedAt
-        }).ToList();
+            Items = items.Select(m => MapMessageResponse(m, currentUser)).ToList(),
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 
-    public async Task<MessageResponse> SendMessageAsync(Guid senderId, Guid assignedJobId, Guid receiverId, string content)
+    public async Task<ConversationMessageResponse> SendMessageAsync(Guid userId, Guid conversationId, SendConversationMessageRequest request)
     {
-        var assigned = await _db.AssignedJobs.Include(a => a.JobListing)
-            .FirstOrDefaultAsync(a => a.Id == assignedJobId)
-            ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
+        var currentUser = await GetMessagingUserAsync(userId);
+        var conversation = await GetAuthorizedConversationAsync(userId, conversationId);
+        var body = request.Body?.Trim();
 
-        var message = new Message
+        if (string.IsNullOrWhiteSpace(body))
         {
-            AssignedJobId = assignedJobId,
-            SenderId = senderId,
-            ReceiverId = receiverId,
-            Content = content.Trim(),
-            IsRead = false
-        };
-        _db.Messages.Add(message);
+            throw new InvalidOperationException("Mesaj içeriği boş olamaz.");
+        }
 
-        // Bildirim
+        if (body.Length > MaxMessageBodyLength)
+        {
+            throw new InvalidOperationException($"Mesaj içeriği en fazla {MaxMessageBodyLength} karakter olabilir.");
+        }
+
+        var now = DateTime.UtcNow;
+        var recipientUserId = await GetOtherUserIdAsync(conversation, userId);
+        var jobTitle = await _db.JobListings
+            .Where(j => j.Id == conversation.JobListingId)
+            .Select(j => j.Title)
+            .FirstOrDefaultAsync() ?? "İlan";
+
+        var message = new ConversationMessage
+        {
+            ConversationId = conversation.Id,
+            SenderId = userId,
+            Body = body,
+            CreatedAt = now
+        };
+
+        conversation.LastMessageAt = now;
+        conversation.LastMessagePreview = body.Length <= 300 ? body : body[..300];
+        conversation.UpdatedAt = now;
+
+        _db.ConversationMessages.Add(message);
         _db.Notifications.Add(new Notification
         {
-            UserId = receiverId,
+            UserId = recipientUserId,
             Type = "NEW_MESSAGE",
             Title = "Yeni Mesaj",
-            Body = $"Yeni bir mesajınız var: {assigned.JobListing.Title}",
-            Data = System.Text.Json.JsonSerializer.Serialize(new { assignedJobId, messageId = message.Id })
+            Body = $"{jobTitle} için yeni bir mesajınız var.",
+            Data = System.Text.Json.JsonSerializer.Serialize(new { conversationId = conversation.Id })
         });
 
         await _db.SaveChangesAsync();
 
-        await _db.Entry(message).Reference(m => m.Sender).LoadAsync();
-        await _db.Entry(message).Reference(m => m.Receiver).LoadAsync();
+        message.Sender = await _db.Users.AsNoTracking().FirstAsync(u => u.Id == userId);
+        return MapMessageResponse(message, currentUser);
+    }
 
-        return new MessageResponse
+    public async Task MarkConversationReadAsync(Guid userId, Guid conversationId)
+    {
+        await GetAuthorizedConversationAsync(userId, conversationId);
+
+        var unreadMessages = await _db.ConversationMessages
+            .Where(m => m.ConversationId == conversationId && m.SenderId != userId && m.ReadAt == null)
+            .ToListAsync();
+
+        if (unreadMessages.Count == 0)
         {
-            Id = message.Id,
-            AssignedJobId = message.AssignedJobId,
-            SenderId = message.SenderId,
-            SenderName = message.Sender.Email,
-            ReceiverId = message.ReceiverId,
-            ReceiverName = message.Receiver.Email,
-            Content = message.Content,
-            IsRead = message.IsRead,
-            CreatedAt = message.CreatedAt
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        unreadMessages.ForEach(m => m.ReadAt = now);
+        await _db.SaveChangesAsync();
+    }
+
+    private async Task<ConversationResponse> BuildConversationResponseAsync(Guid conversationId, Guid currentUserId)
+    {
+        var conversation = await _db.Conversations
+            .AsNoTracking()
+            .Include(c => c.JobListing)
+            .Include(c => c.Agent)
+            .Include(c => c.Subcontractor)
+            .FirstAsync(c => c.Id == conversationId);
+
+        var users = await _db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == conversation.Agent.UserId || u.Id == conversation.Subcontractor.UserId)
+            .ToDictionaryAsync(u => u.Id);
+
+        var unreadCount = await _db.ConversationMessages
+            .AsNoTracking()
+            .CountAsync(m => m.ConversationId == conversation.Id && m.SenderId != currentUserId && m.ReadAt == null);
+
+        return MapConversationResponse(
+            conversation,
+            currentUserId,
+            users,
+            new Dictionary<Guid, int> { [conversation.Id] = unreadCount });
+    }
+
+    private async Task<Conversation> GetAuthorizedConversationAsync(Guid userId, Guid conversationId)
+    {
+        var currentUser = await GetMessagingUserAsync(userId);
+
+        var conversation = await _db.Conversations
+            .FirstOrDefaultAsync(c => c.Id == conversationId)
+            ?? throw new KeyNotFoundException("Konuşma bulunamadı.");
+
+        var isParticipant =
+            (currentUser.AgentProfileId.HasValue && conversation.AgentId == currentUser.AgentProfileId.Value) ||
+            (currentUser.SubcontractorProfileId.HasValue && conversation.SubcontractorId == currentUser.SubcontractorProfileId.Value);
+
+        if (!isParticipant)
+        {
+            throw new UnauthorizedAccessException("Bu konuşmaya erişim yetkiniz yok.");
+        }
+
+        return conversation;
+    }
+
+    private async Task<MessagingUser> GetMessagingUserAsync(Guid userId)
+    {
+        var user = await _db.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive)
+            ?? throw new KeyNotFoundException("Kullanıcı bulunamadı.");
+
+        Guid? agentProfileId = null;
+        Guid? subcontractorProfileId = null;
+
+        if (user.Role == AgentRole)
+        {
+            agentProfileId = await _db.AgentProfiles
+                .AsNoTracking()
+                .Where(a => a.UserId == userId)
+                .Select(a => (Guid?)a.Id)
+                .FirstOrDefaultAsync();
+        }
+        else if (user.Role == SubcontractorRole)
+        {
+            subcontractorProfileId = await _db.SubcontractorProfiles
+                .AsNoTracking()
+                .Where(s => s.UserId == userId)
+                .Select(s => (Guid?)s.Id)
+                .FirstOrDefaultAsync();
+        }
+
+        if (user.Role == AgentRole && !agentProfileId.HasValue)
+        {
+            throw new UnauthorizedAccessException("Acente profili bulunamadı.");
+        }
+
+        if (user.Role == SubcontractorRole && !subcontractorProfileId.HasValue)
+        {
+            throw new UnauthorizedAccessException("Taşeron profili bulunamadı.");
+        }
+
+        if (user.Role != AgentRole && user.Role != SubcontractorRole)
+        {
+            throw new UnauthorizedAccessException("Bu hesap mesajlaşma için yetkili değil.");
+        }
+
+        return new MessagingUser
+        {
+            UserId = user.Id,
+            Role = user.Role,
+            AgentProfileId = agentProfileId,
+            SubcontractorProfileId = subcontractorProfileId
         };
     }
 
-    public async Task MarkReadAsync(Guid userId, Guid messageId)
+    private static void ValidateRolePair(string currentRole, string otherRole)
     {
-        var message = await _db.Messages.FirstOrDefaultAsync(m => m.Id == messageId && m.ReceiverId == userId)
-            ?? throw new KeyNotFoundException("Mesaj bulunamadı.");
-        message.IsRead = true;
-        await _db.SaveChangesAsync();
-    }
+        var allowed =
+            (currentRole == AgentRole && otherRole == SubcontractorRole) ||
+            (currentRole == SubcontractorRole && otherRole == AgentRole);
 
-    // Helper - returns Guid.Empty if not found (simple approach)
-    private static Guid GetAgentId(Guid userId) => Guid.Empty;
-    private static Guid GetSubId(Guid userId) => Guid.Empty;
-}
-
-public class NotificationService
-{
-    private readonly AppDbContext _db;
-
-    public NotificationService(AppDbContext db) => _db = db;
-
-    public async Task<List<NotificationResponse>> GetNotificationsAsync(Guid userId, int page, int pageSize)
-    {
-        var list = await _db.Notifications
-            .Where(n => n.UserId == userId)
-            .OrderByDescending(n => n.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        return list.Select(n => new NotificationResponse
+        if (!allowed)
         {
-            Id = n.Id,
-            Type = n.Type,
-            Title = n.Title,
-            Body = n.Body,
-            IsRead = n.IsRead,
-            Data = n.Data,
-            CreatedAt = n.CreatedAt
-        }).ToList();
+            throw new InvalidOperationException("Bu sürümde yalnızca acente ve taşeron arasında mesajlaşma desteklenir.");
+        }
     }
 
-    public async Task MarkReadAsync(Guid userId, Guid notificationId)
+    private static ParticipantIds ResolveParticipantIds(MessagingUser currentUser, MessagingUser otherUser)
     {
-        var n = await _db.Notifications.FirstOrDefaultAsync(x => x.Id == notificationId && x.UserId == userId)
-            ?? throw new KeyNotFoundException("Bildirim bulunamadı.");
-        n.IsRead = true;
-        await _db.SaveChangesAsync();
+        if (currentUser.Role == AgentRole)
+        {
+            return new ParticipantIds(currentUser.AgentProfileId!.Value, otherUser.SubcontractorProfileId!.Value);
+        }
+
+        return new ParticipantIds(otherUser.AgentProfileId!.Value, currentUser.SubcontractorProfileId!.Value);
     }
 
-    public async Task MarkAllReadAsync(Guid userId)
+    private async Task EnsureConversationCanBeStartedAsync(
+        MessagingUser currentUser,
+        MessagingUser otherUser,
+        ParticipantIds participantIds,
+        JobListing job)
     {
-        var notifications = await _db.Notifications.Where(n => n.UserId == userId && !n.IsRead).ToListAsync();
-        notifications.ForEach(n => n.IsRead = true);
-        await _db.SaveChangesAsync();
+        if (job.AgentId != participantIds.AgentProfileId)
+        {
+            throw new UnauthorizedAccessException("Bu ilan için konuşma başlatma yetkiniz yok.");
+        }
+
+        // Thursday-release rule: only allow job-linked messaging once a concrete business relation exists.
+        var hasBusinessRelation = await _db.Offers.AnyAsync(o =>
+                                     o.JobId == job.Id && o.SubcontractorId == participantIds.SubcontractorProfileId) ||
+                                 await _db.AssignedJobs.AnyAsync(a =>
+                                     a.JobId == job.Id && a.SubcontractorId == participantIds.SubcontractorProfileId);
+
+        if (!hasBusinessRelation)
+        {
+            throw new InvalidOperationException("Konuşma başlatmak için ilanla ilişkili teklif veya aktif iş kaydı bulunmalıdır.");
+        }
+
+        if (currentUser.Role == AgentRole && currentUser.AgentProfileId != participantIds.AgentProfileId)
+        {
+            throw new UnauthorizedAccessException("Bu ilan için konuşma başlatma yetkiniz yok.");
+        }
+
+        if (currentUser.Role == SubcontractorRole)
+        {
+            if (currentUser.SubcontractorProfileId != participantIds.SubcontractorProfileId ||
+                otherUser.AgentProfileId != participantIds.AgentProfileId)
+            {
+                throw new UnauthorizedAccessException("Bu ilan için konuşma başlatma yetkiniz yok.");
+            }
+        }
     }
+
+    private async Task<Guid> GetOtherUserIdAsync(Conversation conversation, Guid currentUserId)
+    {
+        var otherProfileUserId = await _db.AgentProfiles
+            .Where(a => a.Id == conversation.AgentId)
+            .Select(a => a.UserId)
+            .FirstAsync();
+
+        if (otherProfileUserId != currentUserId)
+        {
+            return otherProfileUserId;
+        }
+
+        return await _db.SubcontractorProfiles
+            .Where(s => s.Id == conversation.SubcontractorId)
+            .Select(s => s.UserId)
+            .FirstAsync();
+    }
+
+    private static ConversationResponse MapConversationResponse(
+        Conversation conversation,
+        Guid currentUserId,
+        IReadOnlyDictionary<Guid, User> users,
+        IReadOnlyDictionary<Guid, int> unreadCounts)
+    {
+        var otherUserId = conversation.Agent.UserId == currentUserId
+            ? conversation.Subcontractor.UserId
+            : conversation.Agent.UserId;
+
+        if (!users.TryGetValue(otherUserId, out var otherUser))
+        {
+            throw new KeyNotFoundException("Karşı kullanıcı bulunamadı.");
+        }
+
+        var isOtherAgent = otherUser.Role == AgentRole;
+
+        return new ConversationResponse
+        {
+            Id = conversation.Id,
+            JobListingId = conversation.JobListingId,
+            JobTitle = conversation.JobListing?.Title ?? string.Empty,
+            OtherUserId = otherUserId,
+            OtherRole = otherUser.Role,
+            OtherCompanyName = isOtherAgent ? conversation.Agent.CompanyName : conversation.Subcontractor.CompanyName,
+            OtherFullName = isOtherAgent ? conversation.Agent.FullName : conversation.Subcontractor.FullName,
+            LastMessagePreview = conversation.LastMessagePreview,
+            LastMessageAt = conversation.LastMessageAt,
+            UnreadCount = unreadCounts.TryGetValue(conversation.Id, out var unreadCount) ? unreadCount : 0,
+            CreatedAt = conversation.CreatedAt,
+            UpdatedAt = conversation.UpdatedAt
+        };
+    }
+
+    private static ConversationMessageResponse MapMessageResponse(ConversationMessage message, MessagingUser currentUser)
+    {
+        return new ConversationMessageResponse
+        {
+            Id = message.Id,
+            ConversationId = message.ConversationId,
+            SenderId = message.SenderId,
+            SenderRole = message.Sender.Role,
+            Body = message.Body,
+            CreatedAt = message.CreatedAt,
+            ReadAt = message.ReadAt,
+            IsOwnMessage = message.SenderId == currentUser.UserId
+        };
+    }
+
+    private sealed class MessagingUser
+    {
+        public Guid UserId { get; init; }
+        public string Role { get; init; } = string.Empty;
+        public Guid? AgentProfileId { get; init; }
+        public Guid? SubcontractorProfileId { get; init; }
+    }
+
+    private readonly record struct ParticipantIds(Guid AgentProfileId, Guid SubcontractorProfileId);
 }

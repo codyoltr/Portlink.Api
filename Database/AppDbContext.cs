@@ -18,6 +18,8 @@ public class AppDbContext : DbContext
     public DbSet<AssignedJob> AssignedJobs => Set<AssignedJob>();
     public DbSet<JobLog> JobLogs => Set<JobLog>();
     public DbSet<JobReport> JobReports => Set<JobReport>();
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Port> Ports => Set<Port>();
@@ -161,6 +163,42 @@ public class AppDbContext : DbContext
              .WithMany()
              .HasForeignKey(r => r.UploadedBy)
              .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Conversation>(e =>
+        {
+            e.HasOne(c => c.Agent)
+             .WithMany()
+             .HasForeignKey(c => c.AgentId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(c => c.Subcontractor)
+             .WithMany()
+             .HasForeignKey(c => c.SubcontractorId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(c => c.JobListing)
+             .WithMany()
+             .HasForeignKey(c => c.JobListingId)
+             .OnDelete(DeleteBehavior.SetNull);
+
+            e.HasIndex(c => new { c.AgentId, c.SubcontractorId, c.JobListingId }).IsUnique();
+        });
+
+        modelBuilder.Entity<ConversationMessage>(e =>
+        {
+            e.HasOne(m => m.Conversation)
+             .WithMany(c => c.Messages)
+             .HasForeignKey(m => m.ConversationId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(m => m.Sender)
+             .WithMany()
+             .HasForeignKey(m => m.SenderId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.Property(m => m.Body)
+             .HasMaxLength(4000);
         });
 
         // ── Message ───────────────────────────────────────────
