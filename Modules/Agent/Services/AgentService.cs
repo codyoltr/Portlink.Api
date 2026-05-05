@@ -160,6 +160,7 @@ public class AgentService : IAgentService
                 Id = o.Id,
                 JobId = o.JobId,
                 JobTitle = o.JobListing.Title,
+                AgentUserId = o.JobListing.Agent.UserId,
                 SubcontractorId = o.SubcontractorId,
                 SubcontractorCompanyName = o.Subcontractor.CompanyName,
                 SubcontractorLogoUrl = o.Subcontractor.LogoUrl,
@@ -180,7 +181,7 @@ public class AgentService : IAgentService
             .Where(o => o.JobListing.AgentId == agent.Id).OrderByDescending(o => o.CreatedAt)
             .Select(o => new OfferResponse
             {
-                Id = o.Id, JobId = o.JobId, JobTitle = o.JobListing.Title,
+                Id = o.Id, JobId = o.JobId, JobTitle = o.JobListing.Title, AgentUserId = o.JobListing.Agent.UserId,
                 SubcontractorId = o.SubcontractorId, SubcontractorCompanyName = o.Subcontractor.CompanyName,
                 SubcontractorLogoUrl = o.Subcontractor.LogoUrl, SubcontractorRating = o.Subcontractor.Rating,
                 Price = o.Price, Currency = o.Currency, EstimatedDays = o.EstimatedDays,

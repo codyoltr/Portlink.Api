@@ -23,7 +23,8 @@ public class MessagingService : IMessagingService
     public async Task<ConversationResponse> StartConversationAsync(Guid userId, StartConversationRequest request)
     {
         var currentUser = await GetMessagingUserAsync(userId);
-        var otherUser = await GetMessagingUserAsync(request.OtherUserId);
+        var resolvedOtherUserId = await ResolveOtherUserIdAsync(currentUser, request.OtherUserId);
+        var otherUser = await GetMessagingUserAsync(resolvedOtherUserId);
 
         ValidateRolePair(currentUser.Role, otherUser.Role);
 
@@ -82,6 +83,49 @@ public class MessagingService : IMessagingService
         }
 
         return await BuildConversationResponseAsync(conversation.Id, userId);
+    }
+
+    private async Task<Guid> ResolveOtherUserIdAsync(MessagingUser currentUser, Guid requestedOtherUserId)
+    {
+        var existingUserId = await _db.Users
+            .AsNoTracking()
+            .Where(u => u.Id == requestedOtherUserId && u.IsActive)
+            .Select(u => (Guid?)u.Id)
+            .FirstOrDefaultAsync();
+
+        if (existingUserId.HasValue)
+        {
+            return existingUserId.Value;
+        }
+
+        if (currentUser.Role == SubcontractorRole)
+        {
+            var agentUserId = await _db.AgentProfiles
+                .AsNoTracking()
+                .Where(a => a.Id == requestedOtherUserId)
+                .Select(a => (Guid?)a.UserId)
+                .FirstOrDefaultAsync();
+
+            if (agentUserId.HasValue)
+            {
+                return agentUserId.Value;
+            }
+        }
+        else if (currentUser.Role == AgentRole)
+        {
+            var subcontractorUserId = await _db.SubcontractorProfiles
+                .AsNoTracking()
+                .Where(s => s.Id == requestedOtherUserId)
+                .Select(s => (Guid?)s.UserId)
+                .FirstOrDefaultAsync();
+
+            if (subcontractorUserId.HasValue)
+            {
+                return subcontractorUserId.Value;
+            }
+        }
+
+        throw new KeyNotFoundException("KarÅŸÄ± kullanÄ±cÄ± bulunamadÄ±.");
     }
 
     public async Task<List<ConversationResponse>> GetConversationsAsync(Guid userId)

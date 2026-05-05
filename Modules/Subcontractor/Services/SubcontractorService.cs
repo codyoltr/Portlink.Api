@@ -271,6 +271,7 @@ public class SubcontractorService : ISubcontractorService
         Id = o.Id,
         JobId = o.JobId,
         JobTitle = o.JobListing?.Title ?? string.Empty,
+        AgentUserId = o.JobListing?.Agent?.UserId ?? Guid.Empty,
         SubcontractorId = o.SubcontractorId,
         SubcontractorCompanyName = o.Subcontractor?.CompanyName ?? string.Empty,
         SubcontractorLogoUrl = o.Subcontractor?.LogoUrl,
