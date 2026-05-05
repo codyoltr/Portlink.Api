@@ -73,6 +73,30 @@ public class SubcontractorController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
         catch (InvalidOperationException ex) { return Conflict(ApiResponse.Fail(ex.Message)); }
     }
+    // GET /api/subcontractor/offers/:id
+    [HttpGet("offers/{id:guid}")]
+    public async Task<IActionResult> GetOfferDetail(Guid id)
+    {
+        try
+        {
+            var result = await _svc.GetOfferDetailAsync(UserId, id);
+            return Ok(ApiResponse<OfferResponse>.Ok(result));
+        }
+        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+    }
+
+    // PUT /api/subcontractor/offers/:id
+    [HttpPut("offers/{id:guid}")]
+    public async Task<IActionResult> UpdateOffer(Guid id, [FromBody] UpdateOfferRequest req)
+    {
+        try
+        {
+            var result = await _svc.UpdateOfferAsync(UserId, id, req);
+            return Ok(ApiResponse<OfferResponse>.Ok(result, "Teklifiniz güncellendi."));
+        }
+        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        catch (InvalidOperationException ex) { return Conflict(ApiResponse.Fail(ex.Message)); }
+    }
 
     // GET /api/subcontractor/offers
     [HttpGet("offers")]
@@ -145,5 +169,25 @@ public class SubcontractorController : ControllerBase
     {
         var result = await _svc.GetWalletAsync(UserId);
         return Ok(ApiResponse<WalletResponse>.Ok(result));
+    }
+
+    // GET /api/subcontractor/wallet/transactions
+    [HttpGet("wallet/transactions")]
+    public async Task<IActionResult> GetTransactions([FromQuery] string? type, [FromQuery] string? status, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var result = await _svc.GetTransactionsAsync(UserId, type, status, startDate, endDate, page, pageSize);
+        return Ok(ApiResponse<PaginatedResponse<WalletTransactionResponse>>.Ok(result));
+    }
+
+    // POST /api/subcontractor/wallet/withdraw
+    [HttpPost("wallet/withdraw")]
+    public async Task<IActionResult> RequestWithdrawal([FromBody] WithdrawRequest req)
+    {
+        try
+        {
+            await _svc.RequestWithdrawalAsync(UserId, req);
+            return Ok(ApiResponse.Ok("Para çekme talebiniz alındı."));
+        }
+        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
     }
 }

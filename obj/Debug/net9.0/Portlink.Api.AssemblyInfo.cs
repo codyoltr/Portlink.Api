@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Portlink.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3898f6027c1774f5388e4bba984a4edc74fc285c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c048d7be9efbad91682fd6bf174850df8700d05c")]
 [assembly: System.Reflection.AssemblyProductAttribute("Portlink.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Portlink.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -10,6 +10,14 @@ public class CreateOfferRequest
     public string? CoverNote { get; set; }
 }
 
+public class UpdateOfferRequest
+{
+    public decimal? Price { get; set; }
+    public string? Currency { get; set; }
+    public int? EstimatedDays { get; set; }
+    public string? CoverNote { get; set; }
+}
+
 // ──────────────────── RESPONSE ───────────────────
 
 public class OfferResponse

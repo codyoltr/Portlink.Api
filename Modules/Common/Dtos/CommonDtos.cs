@@ -53,11 +53,19 @@ public class ServiceCategoryResponse
     public List<string> SubServices { get; set; } = new();
 }
 
+public class WithdrawRequest
+{
+    public decimal Amount { get; set; }
+    public string Iban { get; set; } = string.Empty;
+}
+
 public class WalletResponse
 {
     public decimal TotalEarnings { get; set; }
     public decimal PendingEarnings { get; set; }
     public decimal CompletedEarnings { get; set; }
+    public decimal TotalWithdrawn { get; set; }
+    public decimal WithdrawableBalance { get; set; }
     public List<WalletTransactionResponse> Transactions { get; set; } = new();
 }
 

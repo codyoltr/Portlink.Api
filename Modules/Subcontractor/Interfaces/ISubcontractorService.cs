@@ -10,6 +10,8 @@ public interface ISubcontractorService
     Task<List<JobListingResponse>> ListActiveJobsAsync(string? category, string? location, string? search, int page, int pageSize);
     Task<JobListingDetailResponse> GetJobDetailAsync(Guid jobId);
     Task<OfferResponse> CreateOfferAsync(Guid userId, Guid jobId, CreateOfferRequest req);
+    Task<OfferResponse> UpdateOfferAsync(Guid userId, Guid offerId, UpdateOfferRequest req);
+    Task<OfferResponse> GetOfferDetailAsync(Guid userId, Guid offerId);
     Task WithdrawOfferAsync(Guid userId, Guid offerId);
     Task<List<OfferResponse>> GetMyOffersAsync(Guid userId, int page, int pageSize);
     Task<List<AssignedJobResponse>> GetActiveJobsAsync(Guid userId, int page, int pageSize);
@@ -17,4 +19,6 @@ public interface ISubcontractorService
     Task<AssignedJobResponse> UpdateActiveJobAsync(Guid userId, Guid id, UpdateAssignedJobRequest req);
     Task<JobReportResponse> UploadReportAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType);
     Task<WalletResponse> GetWalletAsync(Guid userId);
+    Task<PaginatedResponse<WalletTransactionResponse>> GetTransactionsAsync(Guid userId, string? type, string? status, DateTime? startDate, DateTime? endDate, int page, int pageSize);
+    Task RequestWithdrawalAsync(Guid userId, WithdrawRequest req);
 }

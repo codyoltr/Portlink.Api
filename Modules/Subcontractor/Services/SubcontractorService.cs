@@ -106,6 +106,48 @@ public class SubcontractorService
         return MapOffer(offer);
     }
 
+    public async Task<OfferResponse> UpdateOfferAsync(Guid userId, Guid offerId, UpdateOfferRequest req)
+    {
+        var sub = await GetProfileAsync(userId);
+        var offer = await _db.Offers.Include(o => o.JobListing).Include(o => o.Subcontractor)
+            .FirstOrDefaultAsync(o => o.Id == offerId && o.SubcontractorId == sub.Id)
+            ?? throw new KeyNotFoundException("Teklif bulunamadı.");
+
+        if (offer.Status != "pending")
+            throw new InvalidOperationException("Yalnızca bekleyen teklifler güncellenebilir.");
+
+        if (req.Price.HasValue) offer.Price = req.Price.Value;
+        if (req.Currency != null) offer.Currency = req.Currency;
+        if (req.EstimatedDays.HasValue) offer.EstimatedDays = req.EstimatedDays;
+        if (req.CoverNote != null) offer.CoverNote = req.CoverNote.Trim();
+
+        offer.UpdatedAt = DateTime.UtcNow;
+
+        // Acenteye teklifin güncellendiğine dair bildirim at
+        var agentUserId = await _db.AgentProfiles.Where(a => a.Id == offer.JobListing.AgentId).Select(a => a.UserId).FirstAsync();
+        _db.Notifications.Add(new Notification
+        {
+            UserId = agentUserId,
+            Type = "OFFER_UPDATED",
+            Title = "Teklif Güncellendi",
+            Body = $"{sub.CompanyName} firması '{offer.JobListing.Title}' ilanı için teklifini güncelledi.",
+            Data = System.Text.Json.JsonSerializer.Serialize(new { jobId = offer.JobId, offerId = offer.Id })
+        });
+
+        await _db.SaveChangesAsync();
+        return MapOffer(offer);
+    }
+
+    public async Task<OfferResponse> GetOfferDetailAsync(Guid userId, Guid offerId)
+    {
+        var sub = await GetProfileAsync(userId);
+        var offer = await _db.Offers.Include(o => o.JobListing).Include(o => o.Subcontractor)
+            .FirstOrDefaultAsync(o => o.Id == offerId && o.SubcontractorId == sub.Id)
+            ?? throw new KeyNotFoundException("Teklif bulunamadı.");
+        return MapOffer(offer);
+    }
+
+
     public async Task WithdrawOfferAsync(Guid userId, Guid offerId)
     {
         var sub = await GetProfileAsync(userId);
@@ -215,13 +257,25 @@ public class SubcontractorService
     public async Task<WalletResponse> GetWalletAsync(Guid userId)
     {
         var sub = await GetProfileAsync(userId);
-        var txs = await _db.WalletTransactions.Where(w => w.SubcontractorId == sub.Id).OrderByDescending(w => w.CreatedAt).ToListAsync();
+        var txs = await _db.WalletTransactions.Where(w => w.SubcontractorId == sub.Id).ToListAsync();
+
+        var completedEarnings = txs.Where(t => t.Type == "earning" && t.Status == "completed").Sum(t => t.Amount);
+        var pendingEarnings = txs.Where(t => t.Type == "earning" && t.Status == "pending").Sum(t => t.Amount);
+        
+        var completedWithdrawals = txs.Where(t => t.Type == "withdrawal" && t.Status == "completed").Sum(t => t.Amount);
+        var pendingWithdrawals = txs.Where(t => t.Type == "withdrawal" && t.Status == "pending").Sum(t => t.Amount);
+
+        var totalWithdrawn = completedWithdrawals + pendingWithdrawals;
+        var withdrawableBalance = completedEarnings - totalWithdrawn;
+
         return new WalletResponse
         {
-            TotalEarnings = txs.Where(t => t.Status == "completed").Sum(t => t.Amount),
-            PendingEarnings = txs.Where(t => t.Status == "pending").Sum(t => t.Amount),
-            CompletedEarnings = txs.Where(t => t.Status == "completed").Sum(t => t.Amount),
-            Transactions = txs.Select(t => new WalletTransactionResponse
+            TotalEarnings = completedEarnings + pendingEarnings,
+            CompletedEarnings = completedEarnings,
+            PendingEarnings = pendingEarnings,
+            TotalWithdrawn = totalWithdrawn,
+            WithdrawableBalance = withdrawableBalance < 0 ? 0 : withdrawableBalance,
+            Transactions = txs.OrderByDescending(w => w.CreatedAt).Take(5).Select(t => new WalletTransactionResponse
             {
                 Id = t.Id,
                 Type = t.Type,
@@ -232,6 +286,77 @@ public class SubcontractorService
                 CreatedAt = t.CreatedAt
             }).ToList()
         };
+    }
+
+    public async Task<PaginatedResponse<WalletTransactionResponse>> GetTransactionsAsync(Guid userId, string? type, string? status, DateTime? startDate, DateTime? endDate, int page, int pageSize)
+    {
+        var sub = await GetProfileAsync(userId);
+        var query = _db.WalletTransactions.Where(w => w.SubcontractorId == sub.Id);
+
+        if (!string.IsNullOrWhiteSpace(type)) query = query.Where(w => w.Type == type);
+        if (!string.IsNullOrWhiteSpace(status)) query = query.Where(w => w.Status == status);
+        if (startDate.HasValue) query = query.Where(w => w.CreatedAt >= startDate.Value);
+        if (endDate.HasValue) query = query.Where(w => w.CreatedAt <= endDate.Value);
+
+        var total = await query.CountAsync();
+        var list = await query.OrderByDescending(w => w.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        return new PaginatedResponse<WalletTransactionResponse>
+        {
+            TotalCount = total,
+            Page = page,
+            PageSize = pageSize,
+            Items = list.Select(t => new WalletTransactionResponse
+            {
+                Id = t.Id,
+                Type = t.Type,
+                Amount = t.Amount,
+                Currency = t.Currency,
+                Status = t.Status,
+                Description = t.Description,
+                CreatedAt = t.CreatedAt
+            })
+        };
+    }
+
+    public async Task RequestWithdrawalAsync(Guid userId, WithdrawRequest req)
+    {
+        if (req.Amount <= 0) throw new InvalidOperationException("Geçerli bir tutar giriniz.");
+        if (string.IsNullOrWhiteSpace(req.Iban)) throw new InvalidOperationException("IBAN bilgisi zorunludur.");
+
+        var wallet = await GetWalletAsync(userId);
+        if (req.Amount > wallet.WithdrawableBalance)
+            throw new InvalidOperationException("Çekilebilir bakiyeniz yetersiz.");
+
+        var sub = await GetProfileAsync(userId);
+
+        var tx = new WalletTransaction
+        {
+            SubcontractorId = sub.Id,
+            Type = "withdrawal",
+            Amount = req.Amount,
+            Currency = "TRY", // İsterseniz DTO'dan da alınabilir
+            Status = "pending",
+            Description = $"Para Çekme Talebi - IBAN: {req.Iban}"
+        };
+
+        _db.WalletTransactions.Add(tx);
+
+        // Admine veya sistem yöneticisine e-posta atılabilir. Şimdilik admin user arıyoruz.
+        // Genelde rolleri tutan bir yapı yoksa sistemdeki tüm adminlere veya sabit bir hesaba atılır.
+        var adminRoleUsers = await _db.Users.Where(u => u.Role == "admin").Select(u => u.Id).ToListAsync();
+        foreach (var adminId in adminRoleUsers)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                UserId = adminId,
+                Type = "WITHDRAWAL_REQUEST",
+                Title = "Yeni Para Çekme Talebi",
+                Body = $"{sub.CompanyName} firması {req.Amount} TRY para çekme talebinde bulundu."
+            });
+        }
+
+        await _db.SaveChangesAsync();
     }
 
     // ─── PRIVATE ─────────────────────────────────────────────────────────────
