@@ -18,4 +18,11 @@ public class ConversationMessage
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ReadAt { get; set; }
+    public bool IsEdited { get; set; }
+    public DateTime? EditedAt { get; set; }
+    public bool IsDeletedForEveryone { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public Guid? DeletedByUserId { get; set; }
+
+    public ICollection<ConversationMessageDeletion> Deletions { get; set; } = new List<ConversationMessageDeletion>();
 }

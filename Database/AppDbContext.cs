@@ -20,6 +20,8 @@ public class AppDbContext : DbContext
     public DbSet<JobReport> JobReports => Set<JobReport>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
+    public DbSet<ConversationMessageDeletion> ConversationMessageDeletions => Set<ConversationMessageDeletion>();
+    public DbSet<ConversationUserState> ConversationUserStates => Set<ConversationUserState>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Port> Ports => Set<Port>();
@@ -199,6 +201,38 @@ public class AppDbContext : DbContext
 
             e.Property(m => m.Body)
              .HasMaxLength(4000);
+
+            e.HasIndex(m => new { m.ConversationId, m.CreatedAt });
+        });
+
+        modelBuilder.Entity<ConversationMessageDeletion>(e =>
+        {
+            e.HasOne(d => d.Message)
+             .WithMany(m => m.Deletions)
+             .HasForeignKey(d => d.MessageId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(d => d.User)
+             .WithMany()
+             .HasForeignKey(d => d.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(d => new { d.MessageId, d.UserId }).IsUnique();
+        });
+
+        modelBuilder.Entity<ConversationUserState>(e =>
+        {
+            e.HasOne(s => s.Conversation)
+             .WithMany(c => c.UserStates)
+             .HasForeignKey(s => s.ConversationId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(s => s.User)
+             .WithMany()
+             .HasForeignKey(s => s.UserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(s => new { s.ConversationId, s.UserId }).IsUnique();
         });
 
         // ── Message ───────────────────────────────────────────

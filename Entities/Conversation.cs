@@ -25,4 +25,5 @@ public class Conversation
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<ConversationMessage> Messages { get; set; } = new List<ConversationMessage>();
+    public ICollection<ConversationUserState> UserStates { get; set; } = new List<ConversationUserState>();
 }

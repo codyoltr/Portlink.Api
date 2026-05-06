@@ -64,6 +64,34 @@ public class MessagingController : ControllerBase
         return StatusCode(201, ApiResponse<ConversationMessageResponse>.Ok(result));
     }
 
+    [HttpPatch("api/conversations/{conversationId:guid}/messages/{messageId:guid}")]
+    public async Task<IActionResult> EditMessage(Guid conversationId, Guid messageId, [FromBody] EditConversationMessageRequest request)
+    {
+        var result = await _messagingService.EditMessageAsync(UserId, conversationId, messageId, request);
+        return Ok(ApiResponse<ConversationMessageResponse>.Ok(result));
+    }
+
+    [HttpDelete("api/conversations/{conversationId:guid}/messages/{messageId:guid}/for-me")]
+    public async Task<IActionResult> DeleteMessageForMe(Guid conversationId, Guid messageId)
+    {
+        await _messagingService.DeleteMessageForMeAsync(UserId, conversationId, messageId);
+        return Ok(ApiResponse.Ok("Mesaj sizin iÃ§in gizlendi."));
+    }
+
+    [HttpDelete("api/conversations/{conversationId:guid}/messages/{messageId:guid}/for-everyone")]
+    public async Task<IActionResult> DeleteMessageForEveryone(Guid conversationId, Guid messageId)
+    {
+        await _messagingService.DeleteMessageForEveryoneAsync(UserId, conversationId, messageId);
+        return Ok(ApiResponse.Ok("Mesaj tÃ¼m katÄ±lÄ±mcÄ±lar iÃ§in silindi."));
+    }
+
+    [HttpPost("api/conversations/{conversationId:guid}/clear-history")]
+    public async Task<IActionResult> ClearConversationHistory(Guid conversationId)
+    {
+        await _messagingService.ClearConversationHistoryAsync(UserId, conversationId);
+        return Ok(ApiResponse.Ok("KonuÅŸma geÃ§miÅŸi sizin iÃ§in temizlendi."));
+    }
+
     [HttpPost("api/conversations/{conversationId:guid}/read")]
     public async Task<IActionResult> MarkConversationRead(Guid conversationId)
     {
