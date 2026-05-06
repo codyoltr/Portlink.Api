@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Portlink.Api.DTOs.Jobs;
 using Portlink.Api.DTOs.Offers;
+using Portlink.Api.DTOs.Agents;
+using Portlink.Api.Modules.Auth.Dtos;
 using Portlink.Api.Modules.Common.Dtos;
 using System.Security.Claims;
 
@@ -17,6 +19,22 @@ public class AgentController : ControllerBase
     public AgentController(IAgentService svc) => _svc = svc;
 
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    // GET /api/agent/profile
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var result = await _svc.GetProfileAsync(UserId);
+        return Ok(ApiResponse<AgentProfileResponse>.Ok(result));
+    }
+
+    // PATCH /api/agent/profile
+    [HttpPatch("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateAgencyProfileRequest req)
+    {
+        var result = await _svc.UpdateProfileAsync(UserId, req);
+        return Ok(ApiResponse<AgentProfileResponse>.Ok(result, "Profil başarıyla güncellendi."));
+    }
 
     // GET /api/agent/dashboard/stats
     [HttpGet("dashboard/stats")]

@@ -3,6 +3,8 @@ using Portlink.Api.Data;
 using Portlink.Api.DTOs.Jobs;
 using Portlink.Api.DTOs.Offers;
 using Portlink.Api.Entities;
+using Portlink.Api.DTOs.Agents;
+using Portlink.Api.Modules.Auth.Dtos;
 using Portlink.Api.Modules.Auth.Entities;
 
 namespace Portlink.Api.Modules.Agent;
@@ -14,6 +16,67 @@ public class AgentService : IAgentService
     public AgentService(AppDbContext db)
     {
         _db = db;
+    }
+
+    // ─── PROFILE ─────────────────────────────────────────────────────────────
+
+    public async Task<AgentProfileResponse> GetProfileAsync(Guid userId)
+    {
+        var agent = await _db.AgentProfiles.Include(a => a.User).FirstOrDefaultAsync(a => a.UserId == userId)
+            ?? throw new UnauthorizedAccessException("Acente profili bulunamadı.");
+        return new AgentProfileResponse
+        {
+            Id = agent.Id,
+            FullName = agent.FullName,
+            CompanyName = agent.CompanyName,
+            Phone = agent.Phone,
+            Bio = agent.Bio,
+            Country = agent.Country,
+            City = agent.City,
+            LogoUrl = agent.LogoUrl,
+            Rating = agent.Rating,
+            TotalJobs = agent.TotalJobs,
+            IsVerified = agent.IsVerified
+        };
+    }
+
+    public async Task<AgentProfileResponse> UpdateProfileAsync(Guid userId, UpdateAgencyProfileRequest req)
+    {
+        var agent = await _db.AgentProfiles.Include(a => a.User).FirstOrDefaultAsync(a => a.UserId == userId)
+            ?? throw new UnauthorizedAccessException("Acente profili bulunamadı.");
+
+        if (req.CompanyName != null) agent.CompanyName = req.CompanyName.Trim();
+        if (req.Phone != null) agent.Phone = req.Phone.Trim();
+        if (req.Bio != null) agent.Bio = req.Bio.Trim();
+        
+        if (req.Email != null && agent.User != null)
+        {
+            var email = req.Email.Trim();
+            if (agent.User.Email != email)
+            {
+                var exists = await _db.Users.AnyAsync(u => u.Email == email && u.Id != userId);
+                if (exists) throw new InvalidOperationException("Bu e-posta adresi kullanımda.");
+                agent.User.Email = email;
+            }
+        }
+
+        agent.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return new AgentProfileResponse
+        {
+            Id = agent.Id,
+            FullName = agent.FullName,
+            CompanyName = agent.CompanyName,
+            Phone = agent.Phone,
+            Bio = agent.Bio,
+            Country = agent.Country,
+            City = agent.City,
+            LogoUrl = agent.LogoUrl,
+            Rating = agent.Rating,
+            TotalJobs = agent.TotalJobs,
+            IsVerified = agent.IsVerified
+        };
     }
 
     // ─── DASHBOARD ───────────────────────────────────────────────────────────

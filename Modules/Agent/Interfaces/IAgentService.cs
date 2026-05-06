@@ -1,10 +1,14 @@
 using Portlink.Api.DTOs.Jobs;
 using Portlink.Api.DTOs.Offers;
+using Portlink.Api.DTOs.Agents;
+using Portlink.Api.Modules.Auth.Dtos;
 
 namespace Portlink.Api.Modules.Agent;
 
 public interface IAgentService
 {
+    Task<AgentProfileResponse> GetProfileAsync(Guid userId);
+    Task<AgentProfileResponse> UpdateProfileAsync(Guid userId, UpdateAgencyProfileRequest req);
     Task<AgentDashboardStatsResponse> GetDashboardStatsAsync(Guid userId);
     Task<List<JobListingResponse>> GetMyJobsAsync(Guid userId, string? status, string? category, int page, int pageSize);
     Task<JobListingDetailResponse> GetJobDetailAsync(Guid userId, Guid jobId);

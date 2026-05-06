@@ -20,6 +20,9 @@ public class AgentProfile
     [Required, MaxLength(200)]
     public string CompanyName { get; set; } = string.Empty;
 
+    [MaxLength(1000)]
+    public string? Bio { get; set; }
+
     [MaxLength(100)]
     public string? Country { get; set; }
 
