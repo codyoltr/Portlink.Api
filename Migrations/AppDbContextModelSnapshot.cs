@@ -136,6 +136,21 @@ namespace Portlink.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeletedForEveryone")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsEdited")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -144,11 +159,67 @@ namespace Portlink.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConversationId");
-
                     b.HasIndex("SenderId");
 
+                    b.HasIndex("ConversationId", "CreatedAt");
+
                     b.ToTable("ConversationMessages");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Entities.ConversationMessageDeletion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("MessageId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ConversationMessageDeletions");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Entities.ConversationUserState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastClearedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ConversationId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ConversationUserStates");
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.JobFile", b =>
@@ -868,6 +939,44 @@ namespace Portlink.Api.Migrations
                     b.Navigation("Sender");
                 });
 
+            modelBuilder.Entity("Portlink.Api.Entities.ConversationMessageDeletion", b =>
+                {
+                    b.HasOne("Portlink.Api.Entities.ConversationMessage", "Message")
+                        .WithMany("Deletions")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Portlink.Api.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Entities.ConversationUserState", b =>
+                {
+                    b.HasOne("Portlink.Api.Entities.Conversation", "Conversation")
+                        .WithMany("UserStates")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Portlink.Api.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Portlink.Api.Entities.JobFile", b =>
                 {
                     b.HasOne("Portlink.Api.Entities.JobListing", "JobListing")
@@ -1061,6 +1170,13 @@ namespace Portlink.Api.Migrations
             modelBuilder.Entity("Portlink.Api.Entities.Conversation", b =>
                 {
                     b.Navigation("Messages");
+
+                    b.Navigation("UserStates");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Entities.ConversationMessage", b =>
+                {
+                    b.Navigation("Deletions");
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.JobListing", b =>
