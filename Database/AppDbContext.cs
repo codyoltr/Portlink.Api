@@ -272,6 +272,16 @@ public class AppDbContext : DbContext
             e.HasIndex(p => p.Code).IsUnique();
         });
 
+        // Seed initial ports
+        var seedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        modelBuilder.Entity<Port>().HasData(
+            new Port { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), Code = "TRIST-001", Name = "Ambarlı Limanı", Region = "İstanbul", CreatedAt = seedDate },
+            new Port { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Code = "TRIST-002", Name = "Haydarpaşa Limanı", Region = "İstanbul", CreatedAt = seedDate },
+            new Port { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), Code = "TRIST-003", Name = "Tuzla Limanı", Region = "İstanbul", CreatedAt = seedDate },
+            new Port { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), Code = "TRYAL-001", Name = "Yalova Limanı", Region = "Yalova", CreatedAt = seedDate },
+            new Port { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), Code = "TRKOC-001", Name = "Derince Limanı", Region = "Kocaeli", CreatedAt = seedDate }
+        );
+
         // ── ServiceCategory ───────────────────────────────────
         modelBuilder.Entity<ServiceCategory>(e =>
         {

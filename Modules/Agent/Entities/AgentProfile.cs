@@ -44,4 +44,5 @@ public class AgentProfile
     // Navigation
     public ICollection<JobListing> JobListings { get; set; } = new List<JobListing>();
     public ICollection<AssignedJob> AssignedJobs { get; set; } = new List<AssignedJob>();
+    public ICollection<Port> Ports { get; set; } = new List<Port>();
 }

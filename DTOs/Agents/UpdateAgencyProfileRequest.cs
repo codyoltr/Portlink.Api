@@ -6,4 +6,5 @@ public class UpdateAgencyProfileRequest
     public string? Phone { get; set; }
     public string? Email { get; set; }
     public string? Bio { get; set; }
+    public List<Guid>? PortIds { get; set; }
 }
