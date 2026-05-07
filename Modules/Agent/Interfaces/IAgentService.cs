@@ -17,7 +17,8 @@ public interface IAgentService
     Task DeleteJobAsync(Guid userId, Guid jobId);
     
     Task<List<OfferResponse>> GetJobOffersAsync(Guid userId, Guid jobId);
-    Task<List<OfferResponse>> GetAllOffersAsync(Guid userId);
+    Task<AgentOffersDashboardResponse> GetAllOffersAsync(Guid userId, AgentOffersQueryRequest request);
+    Task<AgentOfferDetailResponse> GetOfferDetailAsync(Guid userId, Guid offerId);
     Task<AssignedJobResponse> AcceptOfferAsync(Guid userId, Guid offerId);
     Task RejectOfferAsync(Guid userId, Guid offerId);
     

@@ -6,6 +6,7 @@ using Portlink.Api.Entities;
 using Portlink.Api.DTOs.Agents;
 using Portlink.Api.Modules.Auth.Dtos;
 using Portlink.Api.Modules.Auth.Entities;
+using Portlink.Api.Modules.Common.Dtos;
 
 namespace Portlink.Api.Modules.Agent;
 
@@ -237,19 +238,137 @@ public class AgentService : IAgentService
             }).ToListAsync();
     }
 
-    public async Task<List<OfferResponse>> GetAllOffersAsync(Guid userId)
+    public async Task<AgentOffersDashboardResponse> GetAllOffersAsync(Guid userId, AgentOffersQueryRequest request)
     {
         var agent = await GetAgentProfileAsync(userId);
-        return await _db.Offers.Include(o => o.Subcontractor).Include(o => o.JobListing)
-            .Where(o => o.JobListing.AgentId == agent.Id).OrderByDescending(o => o.CreatedAt)
-            .Select(o => new OfferResponse
+        var page = request.Page < 1 ? 1 : request.Page;
+        var pageSize = request.PageSize < 1 ? 20 : request.PageSize > 100 ? 100 : request.PageSize;
+
+        var query = _db.Offers
+            .AsNoTracking()
+            .Where(o => o.JobListing.AgentId == agent.Id);
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            query = query.Where(o => o.Status == request.Status);
+        }
+
+        if (request.JobListingId.HasValue)
+        {
+            query = query.Where(o => o.JobId == request.JobListingId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Location))
+        {
+            var location = request.Location.Trim().ToLower();
+            query = query.Where(o =>
+                (o.JobListing.Location != null && o.JobListing.Location.ToLower().Contains(location)) ||
+                (o.JobListing.PortName != null && o.JobListing.PortName.ToLower().Contains(location)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var search = request.Search.Trim().ToLower();
+            query = query.Where(o =>
+                o.JobListing.Title.ToLower().Contains(search) ||
+                (o.JobListing.ShipName != null && o.JobListing.ShipName.ToLower().Contains(search)) ||
+                o.Subcontractor.CompanyName.ToLower().Contains(search) ||
+                o.Subcontractor.FullName.ToLower().Contains(search) ||
+                (o.CoverNote != null && o.CoverNote.ToLower().Contains(search)));
+        }
+
+        query = ApplyOfferSorting(query, request.SortBy, request.SortDirection);
+
+        var totalOffers = await _db.Offers.AsNoTracking().CountAsync(o => o.JobListing.AgentId == agent.Id);
+        var pendingOffers = await _db.Offers.AsNoTracking().CountAsync(o => o.JobListing.AgentId == agent.Id && o.Status == "pending");
+        var acceptedOffers = await _db.Offers.AsNoTracking().CountAsync(o => o.JobListing.AgentId == agent.Id && o.Status == "accepted");
+        var averageOfferAmount = await _db.Offers
+            .AsNoTracking()
+            .Where(o => o.JobListing.AgentId == agent.Id)
+            .AverageAsync(o => (decimal?)o.Price);
+
+        var totalCount = await query.CountAsync();
+        var offers = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(o => new AgentOfferListItemResponse
             {
-                Id = o.Id, JobId = o.JobId, JobTitle = o.JobListing.Title, AgentUserId = o.JobListing.Agent.UserId,
-                SubcontractorId = o.SubcontractorId, SubcontractorCompanyName = o.Subcontractor.CompanyName,
-                SubcontractorLogoUrl = o.Subcontractor.LogoUrl, SubcontractorRating = o.Subcontractor.Rating,
-                Price = o.Price, Currency = o.Currency, EstimatedDays = o.EstimatedDays,
-                CoverNote = o.CoverNote, Status = o.Status, CreatedAt = o.CreatedAt
-            }).ToListAsync();
+                Id = o.Id,
+                JobId = o.JobId,
+                JobTitle = o.JobListing.Title,
+                ShipName = o.JobListing.ShipName,
+                AgentCompanyName = o.JobListing.Agent.CompanyName,
+                Location = o.JobListing.Location ?? o.JobListing.PortName,
+                Price = o.Price,
+                Currency = o.Currency,
+                EstimatedDays = o.EstimatedDays,
+                CoverNote = o.CoverNote,
+                Status = o.Status,
+                CreatedAt = o.CreatedAt,
+                UpdatedAt = o.UpdatedAt,
+                SubcontractorId = o.SubcontractorId,
+                SubcontractorCompanyName = o.Subcontractor.CompanyName,
+                SubcontractorFullName = o.Subcontractor.FullName,
+                SubcontractorLogoUrl = o.Subcontractor.LogoUrl,
+                SubcontractorRating = o.Subcontractor.Rating,
+                SubcontractorCompletedJobsCount = o.Subcontractor.TotalCompleted,
+                SubcontractorIsVerified = o.Subcontractor.IsVerified
+            })
+            .ToListAsync();
+
+        return new AgentOffersDashboardResponse
+        {
+            Offers = new PaginatedResponse<AgentOfferListItemResponse>
+            {
+                Items = offers,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            },
+            TotalOffers = totalOffers,
+            PendingOffers = pendingOffers,
+            AcceptedOffers = acceptedOffers,
+            AverageOfferAmount = averageOfferAmount
+        };
+    }
+
+    public async Task<AgentOfferDetailResponse> GetOfferDetailAsync(Guid userId, Guid offerId)
+    {
+        var agent = await GetAgentProfileAsync(userId);
+
+        return await _db.Offers
+            .AsNoTracking()
+            .Where(o => o.Id == offerId && o.JobListing.AgentId == agent.Id)
+            .Select(o => new AgentOfferDetailResponse
+            {
+                Id = o.Id,
+                JobId = o.JobId,
+                JobTitle = o.JobListing.Title,
+                ShipName = o.JobListing.ShipName,
+                AgentCompanyName = o.JobListing.Agent.CompanyName,
+                Location = o.JobListing.Location ?? o.JobListing.PortName,
+                Price = o.Price,
+                Currency = o.Currency,
+                EstimatedDays = o.EstimatedDays,
+                CoverNote = o.CoverNote,
+                Status = o.Status,
+                CreatedAt = o.CreatedAt,
+                UpdatedAt = o.UpdatedAt,
+                SubcontractorId = o.SubcontractorId,
+                SubcontractorCompanyName = o.Subcontractor.CompanyName,
+                SubcontractorFullName = o.Subcontractor.FullName,
+                SubcontractorLogoUrl = o.Subcontractor.LogoUrl,
+                SubcontractorRating = o.Subcontractor.Rating,
+                SubcontractorCompletedJobsCount = o.Subcontractor.TotalCompleted,
+                SubcontractorIsVerified = o.Subcontractor.IsVerified,
+                PortName = o.JobListing.PortName,
+                PortCode = o.JobListing.PortCode,
+                NeedText = o.JobListing.NeedText,
+                JobStatus = o.JobListing.Status,
+                Deadline = o.JobListing.Deadline
+            })
+            .FirstOrDefaultAsync()
+            ?? throw new KeyNotFoundException("Teklif bulunamadı.");
     }
 
     public async Task<AssignedJobResponse> AcceptOfferAsync(Guid userId, Guid offerId)
@@ -469,6 +588,27 @@ public class AgentService : IAgentService
     private async Task<AgentProfile> GetAgentProfileAsync(Guid userId)
         => await _db.AgentProfiles.FirstOrDefaultAsync(a => a.UserId == userId)
            ?? throw new UnauthorizedAccessException("Acente profili bulunamadı.");
+
+    private static IQueryable<Offer> ApplyOfferSorting(IQueryable<Offer> query, string? sortBy, string? sortDirection)
+    {
+        var descending = !string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
+
+        return (sortBy ?? "createdAt").ToLower() switch
+        {
+            "price" => descending
+                ? query.OrderByDescending(o => o.Price).ThenByDescending(o => o.CreatedAt)
+                : query.OrderBy(o => o.Price).ThenBy(o => o.CreatedAt),
+            "status" => descending
+                ? query.OrderByDescending(o => o.Status).ThenByDescending(o => o.CreatedAt)
+                : query.OrderBy(o => o.Status).ThenBy(o => o.CreatedAt),
+            "jobtitle" => descending
+                ? query.OrderByDescending(o => o.JobListing.Title).ThenByDescending(o => o.CreatedAt)
+                : query.OrderBy(o => o.JobListing.Title).ThenBy(o => o.CreatedAt),
+            _ => descending
+                ? query.OrderByDescending(o => o.CreatedAt)
+                : query.OrderBy(o => o.CreatedAt)
+        };
+    }
 
     private static JobListingResponse MapJobListing(JobListing j) => new()
     {

@@ -193,9 +193,17 @@ public class AgentController : ControllerBase
 
     // GET /api/agent/offers
     [HttpGet("offers")]
-    public async Task<IActionResult> GetAllOffers()
+    public async Task<IActionResult> GetAllOffers([FromQuery] AgentOffersQueryRequest request)
     {
-        var result = await _svc.GetAllOffersAsync(UserId);
-        return Ok(ApiResponse<List<OfferResponse>>.Ok(result));
+        var result = await _svc.GetAllOffersAsync(UserId, request);
+        return Ok(ApiResponse<AgentOffersDashboardResponse>.Ok(result));
+    }
+
+    // GET /api/agent/offers/:id
+    [HttpGet("offers/{offerId:guid}")]
+    public async Task<IActionResult> GetOfferDetail(Guid offerId)
+    {
+        var result = await _svc.GetOfferDetailAsync(UserId, offerId);
+        return Ok(ApiResponse<AgentOfferDetailResponse>.Ok(result));
     }
 }
