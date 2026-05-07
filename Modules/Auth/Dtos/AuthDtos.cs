@@ -1,3 +1,5 @@
+using Portlink.Api.Modules.Common.Dtos;
+
 namespace Portlink.Api.Modules.Auth.Dtos;
 // ──────────────────── REQUEST ────────────────────
 
@@ -58,6 +60,7 @@ public class UserProfileResponse
 public class AgentProfileResponse
 {
     public Guid Id { get; set; }
+    public string Email { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
     public string? Phone { get; set; }
@@ -68,6 +71,7 @@ public class AgentProfileResponse
     public decimal Rating { get; set; }
     public int TotalJobs { get; set; }
     public bool IsVerified { get; set; }
+    public List<PortResponse> Ports { get; set; } = new();
 }
 
 public class SubcontractorProfileResponse

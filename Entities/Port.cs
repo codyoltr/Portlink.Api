@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Portlink.Api.Modules.Auth.Entities;
 
 namespace Portlink.Api.Entities;
 
@@ -23,4 +24,5 @@ public class Port
 
     // Navigation
     public ICollection<JobListing> JobListings { get; set; } = new List<JobListing>();
+    public ICollection<AgentProfile> AgentProfiles { get; set; } = new List<AgentProfile>();
 }

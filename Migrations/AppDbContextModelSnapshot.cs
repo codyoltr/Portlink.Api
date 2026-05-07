@@ -23,6 +23,21 @@ namespace Portlink.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AgentProfilePort", b =>
+                {
+                    b.Property<Guid>("AgentProfilesId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PortsId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("AgentProfilesId", "PortsId");
+
+                    b.HasIndex("PortsId");
+
+                    b.ToTable("AgentProfilePort");
+                });
+
             modelBuilder.Entity("Portlink.Api.Entities.AssignedJob", b =>
                 {
                     b.Property<Guid>("Id")
@@ -582,6 +597,48 @@ namespace Portlink.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Ports");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Code = "TRIST-001",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Ambarlı Limanı",
+                            Region = "İstanbul"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Code = "TRIST-002",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Haydarpaşa Limanı",
+                            Region = "İstanbul"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Code = "TRIST-003",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Tuzla Limanı",
+                            Region = "İstanbul"
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            Code = "TRYAL-001",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Yalova Limanı",
+                            Region = "Yalova"
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            Code = "TRKOC-001",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Derince Limanı",
+                            Region = "Kocaeli"
+                        });
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.ServiceCategory", b =>
@@ -861,6 +918,21 @@ namespace Portlink.Api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("AgentProfilePort", b =>
+                {
+                    b.HasOne("Portlink.Api.Modules.Auth.Entities.AgentProfile", null)
+                        .WithMany()
+                        .HasForeignKey("AgentProfilesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Portlink.Api.Entities.Port", null)
+                        .WithMany()
+                        .HasForeignKey("PortsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.AssignedJob", b =>

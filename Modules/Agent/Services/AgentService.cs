@@ -23,11 +23,12 @@ public class AgentService : IAgentService
 
     public async Task<AgentProfileResponse> GetProfileAsync(Guid userId)
     {
-        var agent = await _db.AgentProfiles.Include(a => a.User).FirstOrDefaultAsync(a => a.UserId == userId)
+        var agent = await _db.AgentProfiles.Include(a => a.User).Include(a => a.Ports).FirstOrDefaultAsync(a => a.UserId == userId)
             ?? throw new UnauthorizedAccessException("Acente profili bulunamadı.");
         return new AgentProfileResponse
         {
             Id = agent.Id,
+            Email = agent.User?.Email ?? string.Empty,
             FullName = agent.FullName,
             CompanyName = agent.CompanyName,
             Phone = agent.Phone,
@@ -37,13 +38,21 @@ public class AgentService : IAgentService
             LogoUrl = agent.LogoUrl,
             Rating = agent.Rating,
             TotalJobs = agent.TotalJobs,
-            IsVerified = agent.IsVerified
+            IsVerified = agent.IsVerified,
+            Ports = agent.Ports.Select(p => new PortResponse
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Name = p.Name,
+                Region = p.Region,
+                Coordinates = p.Coordinates
+            }).ToList()
         };
     }
 
     public async Task<AgentProfileResponse> UpdateProfileAsync(Guid userId, UpdateAgencyProfileRequest req)
     {
-        var agent = await _db.AgentProfiles.Include(a => a.User).FirstOrDefaultAsync(a => a.UserId == userId)
+        var agent = await _db.AgentProfiles.Include(a => a.User).Include(a => a.Ports).FirstOrDefaultAsync(a => a.UserId == userId)
             ?? throw new UnauthorizedAccessException("Acente profili bulunamadı.");
 
         if (req.CompanyName != null) agent.CompanyName = req.CompanyName.Trim();
@@ -61,12 +70,20 @@ public class AgentService : IAgentService
             }
         }
 
+        if (req.PortIds != null)
+        {
+            var ports = await _db.Ports.Where(p => req.PortIds.Contains(p.Id)).ToListAsync();
+            agent.Ports.Clear();
+            foreach (var p in ports) agent.Ports.Add(p);
+        }
+
         agent.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 
         return new AgentProfileResponse
         {
             Id = agent.Id,
+            Email = agent.User?.Email ?? string.Empty,
             FullName = agent.FullName,
             CompanyName = agent.CompanyName,
             Phone = agent.Phone,
@@ -76,7 +93,15 @@ public class AgentService : IAgentService
             LogoUrl = agent.LogoUrl,
             Rating = agent.Rating,
             TotalJobs = agent.TotalJobs,
-            IsVerified = agent.IsVerified
+            IsVerified = agent.IsVerified,
+            Ports = agent.Ports.Select(p => new PortResponse
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Name = p.Name,
+                Region = p.Region,
+                Coordinates = p.Coordinates
+            }).ToList()
         };
     }
 
