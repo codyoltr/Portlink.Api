@@ -11,6 +11,7 @@ public interface IAgentService
     Task<AgentProfileResponse> UpdateProfileAsync(Guid userId, UpdateAgencyProfileRequest req);
     Task<AgentDashboardStatsResponse> GetDashboardStatsAsync(Guid userId);
     Task<List<JobListingResponse>> GetMyJobsAsync(Guid userId, string? status, string? category, int page, int pageSize);
+    Task<List<JobListingResponse>> ListMarketplaceJobsAsync(string? category, string? location, string? search, int page, int pageSize);
     Task<JobListingDetailResponse> GetJobDetailAsync(Guid userId, Guid jobId);
     Task<JobListingResponse> CreateJobAsync(Guid userId, CreateJobListingRequest req);
     Task<JobListingResponse> UpdateJobAsync(Guid userId, Guid jobId, UpdateJobListingRequest req);

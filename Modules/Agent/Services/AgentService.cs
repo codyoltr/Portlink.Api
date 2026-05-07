@@ -131,6 +131,27 @@ public class AgentService : IAgentService
         return jobs.Select(MapJobListing).ToList();
     }
 
+    public async Task<List<JobListingResponse>> ListMarketplaceJobsAsync(string? category, string? location, string? search, int page, int pageSize)
+    {
+        var query = _db.JobListings.Include(j => j.Agent).Where(j => j.Status == "active");
+        
+        if (!string.IsNullOrWhiteSpace(category) && category != "Tümü") 
+            query = query.Where(j => j.Category == category);
+            
+        if (!string.IsNullOrWhiteSpace(location) && location != "Tüm Limanlar") 
+            query = query.Where(j => j.Location != null && j.Location.Contains(location));
+            
+        if (!string.IsNullOrWhiteSpace(search)) 
+            query = query.Where(j => j.Title.Contains(search) || (j.NeedText != null && j.NeedText.Contains(search)));
+            
+        var list = await query.OrderByDescending(j => j.CreatedAt)
+                             .Skip((page - 1) * pageSize)
+                             .Take(pageSize)
+                             .ToListAsync();
+                             
+        return list.Select(MapJobListing).ToList();
+    }
+
     public async Task<JobListingDetailResponse> GetJobDetailAsync(Guid userId, Guid jobId)
     {
         var agent = await GetAgentProfileAsync(userId);

@@ -53,6 +53,15 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<List<JobListingResponse>>.Ok(result));
     }
 
+    // GET /api/agent/marketplace-jobs
+    [HttpGet("marketplace-jobs")]
+    public async Task<IActionResult> ListMarketplaceJobs([FromQuery] string? category, [FromQuery] string? location,
+        [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var result = await _svc.ListMarketplaceJobsAsync(category, location, search, page, pageSize);
+        return Ok(ApiResponse<List<JobListingResponse>>.Ok(result));
+    }
+
     // POST /api/agent/jobs
     [HttpPost("jobs")]
     public async Task<IActionResult> CreateJob([FromBody] CreateJobListingRequest req)
