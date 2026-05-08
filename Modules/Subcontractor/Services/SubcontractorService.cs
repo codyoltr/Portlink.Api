@@ -124,7 +124,10 @@ public class SubcontractorService : ISubcontractorService
     public async Task<List<OfferResponse>> GetMyOffersAsync(Guid userId, int page, int pageSize)
     {
         var sub = await GetProfileAsync(userId);
-        var list = await _db.Offers.Include(o => o.JobListing).Include(o => o.Subcontractor)
+        var list = await _db.Offers
+            .Include(o => o.JobListing)
+                .ThenInclude(j => j.Agent)
+            .Include(o => o.Subcontractor)
             .Where(o => o.SubcontractorId == sub.Id)
             .OrderByDescending(o => o.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         return list.Select(MapOffer).ToList();

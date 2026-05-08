@@ -3,7 +3,7 @@ bin
 obj
 
 # Migration files (if you want to exclude them, otherwise keep them in source control)
-Migrations/
+Migrations
 
 # Environment variables
 .env
@@ -11,7 +11,7 @@ Migrations/
 # Logs
 logs/
 *.log
-
+.build-check
 # IDE/local settings
 .vs/
 .vscode/

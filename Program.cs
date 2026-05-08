@@ -14,6 +14,7 @@ using Portlink.Api.Modules.Messaging.Interfaces;
 using Portlink.Api.Modules.Subcontractor;
 using Portlink.Api.Modules.Subcontractor.Interfaces;
 using Serilog;
+using Portlink.Api.Database.Seeds;
 
 // ─── Serilog Bootstrap ────────────────────────────────────────────────────────
 Log.Logger = new LoggerConfiguration()
@@ -158,6 +159,9 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
+    await AgencyAdminUserSeeder.SeedAsync(db);
+    await SubcontractorAdminUserSeeder.SeedAsync(db);
+    Log.Information("Varsayilan admin kullanici seed islemi tamamlandi.");
     Log.Information("Veritabanı migration tamamlandı.");
 }
 
