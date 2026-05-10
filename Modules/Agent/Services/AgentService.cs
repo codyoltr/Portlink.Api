@@ -486,7 +486,7 @@ public class AgentService : IAgentService
     public async Task<List<AssignedJobResponse>> GetAssignedJobsAsync(Guid userId, string? status, int page, int pageSize)
     {
         var agent = await GetAgentProfileAsync(userId);
-        var query = _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor)
+        var query = _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor).Include(a => a.Offer)
             .Where(a => a.AgentId == agent.Id);
         if (!string.IsNullOrWhiteSpace(status)) query = query.Where(a => a.Status == status);
         var list = await query.OrderByDescending(a => a.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -497,7 +497,7 @@ public class AgentService : IAgentService
     {
         var agent = await GetAgentProfileAsync(userId);
         var a = await _db.AssignedJobs
-            .Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor)
+            .Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer)
             .Include(x => x.JobLogs).Include(x => x.JobReports)
             .FirstOrDefaultAsync(x => x.Id == id && x.AgentId == agent.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
@@ -508,12 +508,15 @@ public class AgentService : IAgentService
             JobTitle = a.JobListing.Title,
             AgentCompanyName = a.Agent.CompanyName,
             SubcontractorCompanyName = a.Subcontractor.CompanyName,
+            SubcontractorProfileId = a.Subcontractor.Id,
             Progress = a.Progress,
             Status = a.Status,
             StartDate = a.StartDate,
             DueDate = a.DueDate,
             CompletedAt = a.CompletedAt,
             CreatedAt = a.CreatedAt,
+            OfferPrice = a.Offer?.Price ?? 0,
+            OfferCurrency = a.Offer?.Currency ?? "TRY",
             Logs = a.JobLogs.OrderByDescending(l => l.CreatedAt).Select(l => new JobLogResponse { Id = l.Id, Title = l.Title, Description = l.Description, CreatedAt = l.CreatedAt }).ToList(),
             Reports = a.JobReports.OrderByDescending(r => r.CreatedAt).Select(r => new JobReportResponse { Id = r.Id, FileName = r.FileName, FileUrl = r.FileUrl, FileSize = r.FileSize, FileType = r.FileType, CreatedAt = r.CreatedAt }).ToList()
         };
@@ -555,7 +558,7 @@ public class AgentService : IAgentService
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
         if (a.Status == "completed") throw new InvalidOperationException("İş zaten tamamlandı.");
         await using var tx = await _db.Database.BeginTransactionAsync();
-        a.Status = "completed"; a.CompletedAt = DateTime.UtcNow; a.UpdatedAt = DateTime.UtcNow;
+        a.Status = "completed"; a.Progress = 100; a.CompletedAt = DateTime.UtcNow; a.UpdatedAt = DateTime.UtcNow;
         a.JobListing.Status = "completed"; a.JobListing.UpdatedAt = DateTime.UtcNow;
         a.Subcontractor.TotalCompleted++;
         if (a.Offer != null)
@@ -567,7 +570,7 @@ public class AgentService : IAgentService
                 Type = "earning",
                 Amount = a.Offer.Price,
                 Currency = a.Offer.Currency,
-                Status = "pending",
+                Status = "completed",
                 Description = $"Hakediş: {a.JobListing.Title}"
             });
         }
@@ -688,6 +691,7 @@ public class AgentService : IAgentService
         JobTitle = a.JobListing?.Title ?? string.Empty,
         AgentUserId = a.Agent?.UserId ?? Guid.Empty,
         SubcontractorUserId = a.Subcontractor?.UserId ?? Guid.Empty,
+        SubcontractorProfileId = a.Subcontractor?.Id ?? Guid.Empty,
         AgentCompanyName = a.Agent?.CompanyName ?? string.Empty,
         SubcontractorCompanyName = a.Subcontractor?.CompanyName ?? string.Empty,
         Progress = a.Progress,
@@ -695,6 +699,8 @@ public class AgentService : IAgentService
         StartDate = a.StartDate,
         DueDate = a.DueDate,
         CompletedAt = a.CompletedAt,
-        CreatedAt = a.CreatedAt
+        CreatedAt = a.CreatedAt,
+        OfferPrice = a.Offer?.Price ?? 0,
+        OfferCurrency = a.Offer?.Currency ?? "TRY"
     };
 }
