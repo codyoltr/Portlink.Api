@@ -100,6 +100,7 @@ public class AssignedJobResponse
     public string JobTitle { get; set; } = string.Empty;
     public Guid AgentUserId { get; set; }
     public Guid SubcontractorUserId { get; set; }
+    public Guid SubcontractorProfileId { get; set; }
     public string AgentCompanyName { get; set; } = string.Empty;
     public string SubcontractorCompanyName { get; set; } = string.Empty;
     public int Progress { get; set; }
@@ -108,6 +109,8 @@ public class AssignedJobResponse
     public DateOnly? DueDate { get; set; }
     public DateTime? CompletedAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public decimal OfferPrice { get; set; }
+    public string OfferCurrency { get; set; } = "TRY";
 }
 
 public class AssignedJobDetailResponse : AssignedJobResponse
