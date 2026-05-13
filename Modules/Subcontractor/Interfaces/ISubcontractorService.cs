@@ -1,11 +1,14 @@
 using Portlink.Api.DTOs.Jobs;
 using Portlink.Api.DTOs.Offers;
+using Portlink.Api.Modules.Auth.Dtos;
 using Portlink.Api.Modules.Common.Dtos;
 
 namespace Portlink.Api.Modules.Subcontractor.Interfaces;
 
 public interface ISubcontractorService
 {
+    Task<SubcontractorProfileResponse> GetSubcontractorProfileAsync(Guid userId);
+    Task<SubcontractorProfileResponse> UpdateSubcontractorProfileAsync(Guid userId, UpdateSubcontractorProfileRequest req);
     Task<SubcontractorDashboardStatsResponse> GetDashboardStatsAsync(Guid userId);
     Task<List<JobListingResponse>> ListActiveJobsAsync(string? category, string? location, string? search, int page, int pageSize);
     Task<JobListingDetailResponse> GetJobDetailAsync(Guid jobId);
@@ -16,5 +19,8 @@ public interface ISubcontractorService
     Task<AssignedJobDetailResponse> GetActiveJobDetailAsync(Guid userId, Guid id);
     Task<AssignedJobResponse> UpdateActiveJobAsync(Guid userId, Guid id, UpdateAssignedJobRequest req);
     Task<JobReportResponse> UploadReportAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType);
+    Task<string> UploadLogoAsync(Guid userId, string logoUrl);
     Task<WalletResponse> GetWalletAsync(Guid userId);
+    Task<AgentProfileResponse> GetAgentPublicProfileAsync(Guid userId, Guid agentProfileId);
+    Task RateAgentAsync(Guid userId, Guid agentProfileId, decimal rating);
 }

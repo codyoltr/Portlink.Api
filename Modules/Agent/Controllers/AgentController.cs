@@ -36,6 +36,32 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<AgentProfileResponse>.Ok(result, "Profil başarıyla güncellendi."));
     }
 
+    // POST /api/agent/profile/logo
+    [HttpPost("profile/logo")]
+    public async Task<IActionResult> UploadLogo(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse.Fail("Dosya seçilmedi."));
+
+        if (file.Length > 5 * 1024 * 1024)
+            return BadRequest(ApiResponse.Fail("Dosya boyutu 5 MB'ı aşamaz."));
+
+        var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
+        if (ext is not ("jpg" or "jpeg" or "png" or "webp"))
+            return BadRequest(ApiResponse.Fail("Yalnızca JPG, PNG veya WebP dosyaları kabul edilir."));
+
+        var logosDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "logos");
+        Directory.CreateDirectory(logosDir);
+        var fileName = $"{Guid.NewGuid()}.{ext}";
+        var filePath = Path.Combine(logosDir, fileName);
+        await using var stream = System.IO.File.Create(filePath);
+        await file.CopyToAsync(stream);
+
+        var logoUrl = $"/uploads/logos/{fileName}";
+        var result = await _svc.UploadLogoAsync(UserId, logoUrl);
+        return Ok(ApiResponse<string>.Ok(result, "Logo güncellendi."));
+    }
+
     // GET /api/agent/dashboard/stats
     [HttpGet("dashboard/stats")]
     public async Task<IActionResult> DashboardStats()
@@ -192,12 +218,29 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<List<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse>>.Ok(result));
     }
 
+    // GET /api/agent/subcontractors/:id
+    [HttpGet("subcontractors/{id:guid}")]
+    public async Task<IActionResult> GetSubcontractorById(Guid id)
+    {
+        try
+        {
+            var result = await _svc.GetSubcontractorByIdAsync(UserId, id);
+            return Ok(ApiResponse<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse>.Ok(result));
+        }
+        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+    }
+
     // POST /api/agent/subcontractors/:id/rate
     [HttpPost("subcontractors/{id:guid}/rate")]
     public async Task<IActionResult> RateSubcontractor(Guid id, [FromQuery] decimal rating)
     {
-        await _svc.RateSubcontractorAsync(UserId, id, rating);
-        return Ok(ApiResponse.Ok("Puanlama kaydedildi."));
+        try
+        {
+            await _svc.RateSubcontractorAsync(UserId, id, rating);
+            return Ok(ApiResponse.Ok("Puanlama kaydedildi."));
+        }
+        catch (InvalidOperationException ex) { return Conflict(ApiResponse.Fail(ex.Message)); }
+        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
     }
 
     // GET /api/agent/offers

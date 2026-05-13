@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Portlink.Api.DTOs.Jobs;
 using Portlink.Api.DTOs.Offers;
+using Portlink.Api.Modules.Auth.Dtos;
 using Portlink.Api.Modules.Common.Dtos;
 using Portlink.Api.Modules.Subcontractor.Interfaces;
 using System.Security.Claims;
@@ -18,6 +19,47 @@ public class SubcontractorController : ControllerBase
     public SubcontractorController(ISubcontractorService svc) => _svc = svc;
 
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    // GET /api/subcontractor/profile
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var result = await _svc.GetSubcontractorProfileAsync(UserId);
+        return Ok(ApiResponse<SubcontractorProfileResponse>.Ok(result));
+    }
+
+    // PATCH /api/subcontractor/profile
+    [HttpPatch("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateSubcontractorProfileRequest req)
+    {
+        var result = await _svc.UpdateSubcontractorProfileAsync(UserId, req);
+        return Ok(ApiResponse<SubcontractorProfileResponse>.Ok(result, "Profil başarıyla güncellendi."));
+    }
+
+    // POST /api/subcontractor/profile/logo
+    [HttpPost("profile/logo")]
+    public async Task<IActionResult> UploadLogo(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse.Fail("Dosya seçilmedi."));
+        if (file.Length > 5 * 1024 * 1024)
+            return BadRequest(ApiResponse.Fail("Dosya boyutu 5 MB'ı geçemez."));
+
+        var ext = Path.GetExtension(file.FileName).ToLower();
+        if (!new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(ext))
+            return BadRequest(ApiResponse.Fail("Yalnızca JPG, PNG veya WebP yüklenebilir."));
+
+        var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "logos");
+        Directory.CreateDirectory(uploadsDir);
+        var fileName = $"{Guid.NewGuid()}{ext}";
+        var filePath = Path.Combine(uploadsDir, fileName);
+        await using var stream = System.IO.File.Create(filePath);
+        await file.CopyToAsync(stream);
+
+        var logoUrl = $"/uploads/logos/{fileName}";
+        await _svc.UploadLogoAsync(UserId, logoUrl);
+        return Ok(ApiResponse<string>.Ok(logoUrl, "Logo başarıyla yüklendi."));
+    }
 
     // GET /api/subcontractor/dashboard/stats
     [HttpGet("dashboard/stats")]
@@ -145,5 +187,30 @@ public class SubcontractorController : ControllerBase
     {
         var result = await _svc.GetWalletAsync(UserId);
         return Ok(ApiResponse<WalletResponse>.Ok(result));
+    }
+
+    // GET /api/subcontractor/agents/:id  (public agent profile)
+    [HttpGet("agents/{id:guid}")]
+    public async Task<IActionResult> GetAgentProfile(Guid id)
+    {
+        try
+        {
+            var result = await _svc.GetAgentPublicProfileAsync(UserId, id);
+            return Ok(ApiResponse<AgentProfileResponse>.Ok(result));
+        }
+        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+    }
+
+    // POST /api/subcontractor/agents/:id/rate
+    [HttpPost("agents/{id:guid}/rate")]
+    public async Task<IActionResult> RateAgent(Guid id, [FromQuery] decimal rating)
+    {
+        try
+        {
+            await _svc.RateAgentAsync(UserId, id, rating);
+            return Ok(ApiResponse.Ok("Puanlama kaydedildi."));
+        }
+        catch (InvalidOperationException ex) { return Conflict(ApiResponse.Fail(ex.Message)); }
+        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
     }
 }
