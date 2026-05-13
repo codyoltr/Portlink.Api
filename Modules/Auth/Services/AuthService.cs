@@ -209,6 +209,7 @@ public class AuthService : IAuthService
                 City = sub.City,
                 LogoUrl = sub.LogoUrl,
                 Rating = sub.Rating,
+                RatingCount = sub.RatingCount,
                 TotalCompleted = sub.TotalCompleted,
                 ExpertiseTags = sub.ExpertiseTags?.ToList() ?? new(),
                 IsVerified = sub.IsVerified

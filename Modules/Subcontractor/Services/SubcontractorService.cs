@@ -3,6 +3,7 @@ using Portlink.Api.Data;
 using Portlink.Api.DTOs.Jobs;
 using Portlink.Api.DTOs.Offers;
 using Portlink.Api.Entities;
+using Portlink.Api.Modules.Auth.Dtos;
 using Portlink.Api.Modules.Common.Dtos;
 using Portlink.Api.Modules.Subcontractor.Interfaces;
 
@@ -13,6 +14,36 @@ public class SubcontractorService : ISubcontractorService
     private readonly AppDbContext _db;
 
     public SubcontractorService(AppDbContext db) => _db = db;
+
+    // ─── PROFILE ─────────────────────────────────────────────────────────────
+
+    public async Task<SubcontractorProfileResponse> GetSubcontractorProfileAsync(Guid userId)
+    {
+        var sub = await _db.SubcontractorProfiles
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.UserId == userId)
+            ?? throw new UnauthorizedAccessException("Taşeron profili bulunamadı.");
+        return MapProfileResponse(sub);
+    }
+
+    public async Task<SubcontractorProfileResponse> UpdateSubcontractorProfileAsync(Guid userId, UpdateSubcontractorProfileRequest req)
+    {
+        var sub = await _db.SubcontractorProfiles
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.UserId == userId)
+            ?? throw new UnauthorizedAccessException("Taşeron profili bulunamadı.");
+
+        if (req.CompanyName != null) sub.CompanyName = req.CompanyName.Trim();
+        if (req.FullName != null) sub.FullName = req.FullName.Trim();
+        if (req.Phone != null) sub.Phone = req.Phone.Trim();
+        if (req.Country != null) sub.Country = req.Country.Trim();
+        if (req.City != null) sub.City = req.City.Trim();
+        if (req.ExpertiseTags != null) sub.ExpertiseTags = req.ExpertiseTags;
+        sub.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        return MapProfileResponse(sub);
+    }
 
     // ─── DASHBOARD ───────────────────────────────────────────────────────────
 
@@ -156,7 +187,11 @@ public class SubcontractorService : ISubcontractorService
             Id = a.Id,
             JobId = a.JobId,
             JobTitle = a.JobListing.Title,
+            AgentUserId = a.Agent.UserId,
+            AgentProfileId = a.AgentId,
+            AgentLogoUrl = a.Agent.LogoUrl,
             AgentCompanyName = a.Agent.CompanyName,
+            SubcontractorUserId = a.Subcontractor.UserId,
             SubcontractorCompanyName = a.Subcontractor.CompanyName,
             Progress = a.Progress,
             Status = a.Status,
@@ -214,6 +249,18 @@ public class SubcontractorService : ISubcontractorService
         return new JobReportResponse { Id = report.Id, FileName = report.FileName, FileUrl = report.FileUrl, FileSize = report.FileSize, FileType = report.FileType, CreatedAt = report.CreatedAt };
     }
 
+    // ─── LOGO ─────────────────────────────────────────────────────────────────
+
+    public async Task<string> UploadLogoAsync(Guid userId, string logoUrl)
+    {
+        var sub = await _db.SubcontractorProfiles.FirstOrDefaultAsync(s => s.UserId == userId)
+            ?? throw new UnauthorizedAccessException("Taşeron profili bulunamadı.");
+        sub.LogoUrl = logoUrl;
+        sub.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return logoUrl;
+    }
+
     // ─── WALLET ───────────────────────────────────────────────────────────────
 
     public async Task<WalletResponse> GetWalletAsync(Guid userId)
@@ -243,6 +290,23 @@ public class SubcontractorService : ISubcontractorService
     private async Task<SubcontractorProfile> GetProfileAsync(Guid userId)
         => await _db.SubcontractorProfiles.FirstOrDefaultAsync(s => s.UserId == userId)
            ?? throw new UnauthorizedAccessException("Taşeron profili bulunamadı.");
+
+    private static SubcontractorProfileResponse MapProfileResponse(SubcontractorProfile sub) => new()
+    {
+        Id = sub.Id,
+        FullName = sub.FullName,
+        CompanyName = sub.CompanyName,
+        Email = sub.User?.Email,
+        Phone = sub.Phone,
+        Country = sub.Country,
+        City = sub.City,
+        LogoUrl = sub.LogoUrl,
+        Rating = sub.Rating,
+        RatingCount = sub.RatingCount,
+        TotalCompleted = sub.TotalCompleted,
+        ExpertiseTags = sub.ExpertiseTags,
+        IsVerified = sub.IsVerified
+    };
 
     private static JobListingResponse MapJobListing(JobListing j) => new()
     {
@@ -293,6 +357,8 @@ public class SubcontractorService : ISubcontractorService
         JobId = a.JobId,
         JobTitle = a.JobListing?.Title ?? string.Empty,
         AgentUserId = a.Agent?.UserId ?? Guid.Empty,
+        AgentProfileId = a.AgentId,
+        AgentLogoUrl = a.Agent?.LogoUrl,
         SubcontractorUserId = a.Subcontractor?.UserId ?? Guid.Empty,
         AgentCompanyName = a.Agent?.CompanyName ?? string.Empty,
         SubcontractorCompanyName = a.Subcontractor?.CompanyName ?? string.Empty,
@@ -303,4 +369,76 @@ public class SubcontractorService : ISubcontractorService
         CompletedAt = a.CompletedAt,
         CreatedAt = a.CreatedAt
     };
+
+    public async Task<AgentProfileResponse> GetAgentPublicProfileAsync(Guid userId, Guid agentProfileId)
+    {
+        var agent = await _db.AgentProfiles
+            .Include(a => a.User)
+            .Include(a => a.Ports)
+            .FirstOrDefaultAsync(a => a.Id == agentProfileId)
+            ?? throw new KeyNotFoundException("Acente profili bulunamadı.");
+
+        var hasRated = await _db.Ratings
+            .AnyAsync(r => r.RaterUserId == userId && r.RateeProfileId == agentProfileId);
+
+        var breakdownRaw = await _db.Ratings
+            .Where(r => r.RateeProfileId == agentProfileId)
+            .GroupBy(r => (int)Math.Round((double)r.Score))
+            .Select(g => new { Star = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        var breakdown = new Dictionary<int, int> { {1,0},{2,0},{3,0},{4,0},{5,0} };
+        foreach (var b in breakdownRaw)
+            if (b.Star >= 1 && b.Star <= 5) breakdown[b.Star] = b.Count;
+
+        return new AgentProfileResponse
+        {
+            Id = agent.Id,
+            Email = agent.User?.Email ?? string.Empty,
+            FullName = agent.FullName,
+            CompanyName = agent.CompanyName,
+            Phone = agent.Phone,
+            Bio = agent.Bio,
+            Country = agent.Country,
+            City = agent.City,
+            LogoUrl = agent.LogoUrl,
+            Rating = agent.Rating,
+            RatingCount = agent.RatingCount,
+            TotalJobs = agent.TotalJobs,
+            IsVerified = agent.IsVerified,
+            HasCurrentUserRated = hasRated,
+            RatingBreakdown = breakdown,
+            Ports = agent.Ports.Select(p => new PortResponse
+            {
+                Id = p.Id,
+                Code = p.Code,
+                Name = p.Name,
+                Region = p.Region,
+                Coordinates = p.Coordinates
+            }).ToList()
+        };
+    }
+
+    public async Task RateAgentAsync(Guid userId, Guid agentProfileId, decimal rating)
+    {
+        var agent = await _db.AgentProfiles.FirstOrDefaultAsync(a => a.Id == agentProfileId)
+            ?? throw new KeyNotFoundException("Acente profili bulunamadı.");
+
+        var alreadyRated = await _db.Ratings
+            .AnyAsync(r => r.RaterUserId == userId && r.RateeProfileId == agentProfileId);
+        if (alreadyRated)
+            throw new InvalidOperationException("Bu acenteyi daha önce puanladınız.");
+
+        agent.Rating = (agent.Rating * agent.RatingCount + rating) / (agent.RatingCount + 1);
+        agent.RatingCount++;
+
+        _db.Ratings.Add(new Portlink.Api.Entities.Rating
+        {
+            RaterUserId = userId,
+            RateeProfileId = agentProfileId,
+            Score = rating
+        });
+
+        await _db.SaveChangesAsync();
+    }
 }

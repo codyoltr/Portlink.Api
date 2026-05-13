@@ -28,6 +28,7 @@ public class AppDbContext : DbContext
     public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Rating> Ratings => Set<Rating>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -313,6 +314,20 @@ public class AppDbContext : DbContext
              .WithMany(u => u.RefreshTokens)
              .HasForeignKey(r => r.UserId)
              .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── Rating ────────────────────────────────────────────
+        modelBuilder.Entity<Rating>(e =>
+        {
+            e.HasOne(r => r.RaterUser)
+             .WithMany()
+             .HasForeignKey(r => r.RaterUserId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            // One user can rate each profile only once
+            e.HasIndex(r => new { r.RaterUserId, r.RateeProfileId }).IsUnique();
+
+            e.Property(r => r.Score).HasPrecision(3, 2);
         });
     }
 }

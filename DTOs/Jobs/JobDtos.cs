@@ -99,9 +99,11 @@ public class AssignedJobResponse
     public Guid JobId { get; set; }
     public string JobTitle { get; set; } = string.Empty;
     public Guid AgentUserId { get; set; }
+    public Guid AgentProfileId { get; set; }
     public Guid SubcontractorUserId { get; set; }
     public Guid SubcontractorProfileId { get; set; }
     public string AgentCompanyName { get; set; } = string.Empty;
+    public string? AgentLogoUrl { get; set; }
     public string SubcontractorCompanyName { get; set; } = string.Empty;
     public int Progress { get; set; }
     public string Status { get; set; } = string.Empty;

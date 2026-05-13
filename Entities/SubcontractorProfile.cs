@@ -32,6 +32,7 @@ public class SubcontractorProfile
     public string? LogoUrl { get; set; }
 
     public decimal Rating { get; set; } = 0.0m;
+    public int RatingCount { get; set; } = 0;
     public int TotalCompleted { get; set; } = 0;
     public bool IsVerified { get; set; } = false;
 

@@ -69,8 +69,11 @@ public class AgentProfileResponse
     public string? City { get; set; }
     public string? LogoUrl { get; set; }
     public decimal Rating { get; set; }
+    public int RatingCount { get; set; }
     public int TotalJobs { get; set; }
     public bool IsVerified { get; set; }
+    public bool HasCurrentUserRated { get; set; }
+    public Dictionary<int, int> RatingBreakdown { get; set; } = new();
     public List<PortResponse> Ports { get; set; } = new();
 }
 
@@ -79,12 +82,26 @@ public class SubcontractorProfileResponse
     public Guid Id { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
+    public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? Country { get; set; }
     public string? City { get; set; }
     public string? LogoUrl { get; set; }
     public decimal Rating { get; set; }
+    public int RatingCount { get; set; }
     public int TotalCompleted { get; set; }
     public List<string> ExpertiseTags { get; set; } = new();
     public bool IsVerified { get; set; }
+    public bool HasCurrentUserRated { get; set; }
+    public Dictionary<int, int> RatingBreakdown { get; set; } = new();
+}
+
+public class UpdateSubcontractorProfileRequest
+{
+    public string? CompanyName { get; set; }
+    public string? FullName { get; set; }
+    public string? Phone { get; set; }
+    public string? Country { get; set; }
+    public string? City { get; set; }
+    public List<string>? ExpertiseTags { get; set; }
 }
