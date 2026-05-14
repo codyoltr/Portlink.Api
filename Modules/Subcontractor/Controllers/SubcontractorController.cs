@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Portlink.Api.DTOs.Jobs;
 using Portlink.Api.DTOs.Offers;
 using Portlink.Api.Modules.Common.Dtos;
+using Portlink.Api.Modules.Storage.Dtos;
+using Portlink.Api.Modules.Storage.Enums;
+using Portlink.Api.Modules.Storage.Interfaces;
 using Portlink.Api.Modules.Subcontractor.Interfaces;
 using System.Security.Claims;
 
@@ -14,12 +17,16 @@ namespace Portlink.Api.Modules.Subcontractor;
 public class SubcontractorController : ControllerBase
 {
     private readonly ISubcontractorService _svc;
+    private readonly IStorageService _storageService;
 
-    public SubcontractorController(ISubcontractorService svc) => _svc = svc;
+    public SubcontractorController(ISubcontractorService svc, IStorageService storageService)
+    {
+        _svc = svc;
+        _storageService = storageService;
+    }
 
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    // GET /api/subcontractor/dashboard/stats
     [HttpGet("dashboard/stats")]
     public async Task<IActionResult> DashboardStats()
     {
@@ -27,7 +34,6 @@ public class SubcontractorController : ControllerBase
         return Ok(ApiResponse<SubcontractorDashboardStatsResponse>.Ok(result));
     }
 
-    // GET /api/subcontractor/jobs
     [HttpGet("jobs")]
     public async Task<IActionResult> ListJobs([FromQuery] string? category, [FromQuery] string? location,
         [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -36,7 +42,6 @@ public class SubcontractorController : ControllerBase
         return Ok(ApiResponse<List<JobListingResponse>>.Ok(result));
     }
 
-    // GET /api/subcontractor/jobs/:id
     [HttpGet("jobs/{id:guid}")]
     public async Task<IActionResult> GetJob(Guid id)
     {
@@ -48,7 +53,6 @@ public class SubcontractorController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
     }
 
-    // POST /api/subcontractor/jobs/:id/offer
     [HttpPost("jobs/{id:guid}/offer")]
     public async Task<IActionResult> CreateOffer(Guid id, [FromBody] CreateOfferRequest req)
     {
@@ -61,20 +65,18 @@ public class SubcontractorController : ControllerBase
         catch (InvalidOperationException ex) { return Conflict(ApiResponse.Fail(ex.Message)); }
     }
 
-    // PUT /api/subcontractor/offers/:id/withdraw
     [HttpPut("offers/{id:guid}/withdraw")]
     public async Task<IActionResult> WithdrawOffer(Guid id)
     {
         try
         {
             await _svc.WithdrawOfferAsync(UserId, id);
-            return Ok(ApiResponse.Ok("Teklif geri çekildi."));
+            return Ok(ApiResponse.Ok("Teklif geri cekildi."));
         }
         catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
         catch (InvalidOperationException ex) { return Conflict(ApiResponse.Fail(ex.Message)); }
     }
 
-    // GET /api/subcontractor/offers
     [HttpGet("offers")]
     public async Task<IActionResult> GetMyOffers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
@@ -82,7 +84,6 @@ public class SubcontractorController : ControllerBase
         return Ok(ApiResponse<List<OfferResponse>>.Ok(result));
     }
 
-    // GET /api/subcontractor/active-jobs
     [HttpGet("active-jobs")]
     public async Task<IActionResult> GetActiveJobs([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
@@ -90,7 +91,6 @@ public class SubcontractorController : ControllerBase
         return Ok(ApiResponse<List<AssignedJobResponse>>.Ok(result));
     }
 
-    // GET /api/subcontractor/active-jobs/:id
     [HttpGet("active-jobs/{id:guid}")]
     public async Task<IActionResult> GetActiveJobDetail(Guid id)
     {
@@ -102,7 +102,6 @@ public class SubcontractorController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
     }
 
-    // PUT /api/subcontractor/active-jobs/:id  (progress / status update)
     [HttpPut("active-jobs/{id:guid}")]
     public async Task<IActionResult> UpdateActiveJob(Guid id, [FromBody] UpdateAssignedJobRequest req)
     {
@@ -114,36 +113,47 @@ public class SubcontractorController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
     }
 
-    // POST /api/subcontractor/active-jobs/:id/reports
     [HttpPost("active-jobs/{id:guid}/reports")]
-    public async Task<IActionResult> UploadReport(Guid id, IFormFile file)
+    public async Task<IActionResult> UploadReport(Guid id, IFormFile file, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
-            return BadRequest(ApiResponse.Fail("Dosya seçilmedi."));
+            return BadRequest(ApiResponse.Fail("Dosya secilmedi."));
         if (file.Length > 50 * 1024 * 1024)
-            return BadRequest(ApiResponse.Fail("Dosya boyutu 50 MB'ı geçemez."));
+            return BadRequest(ApiResponse.Fail("Dosya boyutu 50 MB'i gecemez."));
 
-        var uploads = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-        Directory.CreateDirectory(uploads);
-        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-        var filePath = Path.Combine(uploads, fileName);
-        await using var stream = System.IO.File.Create(filePath);
-        await file.CopyToAsync(stream);
+        var storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
+        {
+            File = file,
+            FileCategory = ResolveStorageCategory(file.FileName),
+            RelatedEntityType = StorageRelatedEntityType.AssignedJob,
+            RelatedEntityId = id
+        }, cancellationToken);
 
-        var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
+        var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant();
         try
         {
-            var result = await _svc.UploadReportAsync(UserId, id, file.FileName, $"/uploads/{fileName}", file.Length, ext);
+            var result = await _svc.UploadReportAsync(UserId, id, storedFile.OriginalFileName, storedFile.DownloadUrl, file.Length, ext);
             return StatusCode(201, ApiResponse<JobReportResponse>.Ok(result));
         }
         catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
     }
 
-    // GET /api/subcontractor/wallet
     [HttpGet("wallet")]
     public async Task<IActionResult> GetWallet()
     {
         var result = await _svc.GetWalletAsync(UserId);
         return Ok(ApiResponse<WalletResponse>.Ok(result));
+    }
+
+    private static StorageFileCategory ResolveStorageCategory(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).TrimStart('.').ToLowerInvariant();
+
+        return extension switch
+        {
+            "jpg" or "jpeg" or "png" => StorageFileCategory.Image,
+            "mp4" or "mov" or "webm" => StorageFileCategory.Video,
+            _ => StorageFileCategory.Document
+        };
     }
 }

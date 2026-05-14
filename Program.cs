@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using AspNetCoreRateLimit;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,10 +10,16 @@ using Portlink.Api.Data;
 using Portlink.Api.Helpers;
 using Portlink.Api.Modules.Agent;
 using Portlink.Api.Modules.Auth;
+using Portlink.Api.Modules.Chatbot.Interfaces;
+using Portlink.Api.Modules.Chatbot.Services;
+using Portlink.Api.Modules.Chatbot.Settings;
 using Portlink.Api.Modules.Messaging;
 using Portlink.Api.Modules.Messaging.Interfaces;
 using Portlink.Api.Modules.Subcontractor;
 using Portlink.Api.Modules.Subcontractor.Interfaces;
+using Portlink.Api.Modules.Storage.Interfaces;
+using Portlink.Api.Modules.Storage.Services;
+using Portlink.Api.Modules.Storage.Settings;
 using Serilog;
 using Portlink.Api.Database.Seeds;
 
@@ -22,6 +29,9 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/portlink-.log", rollingInterval: RollingInterval.Day)
     .Enrich.FromLogContext()
     .CreateLogger();
+
+// Load .env before configuration is built so env vars are available.
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
@@ -79,6 +89,18 @@ builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<ISubcontractorService, SubcontractorService>();
 builder.Services.AddScoped<IMessagingService, MessagingService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+var storageSettings = StorageSettings.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(storageSettings);
+builder.Services.AddScoped<IS3StorageProvider, S3StorageProvider>();
+builder.Services.AddScoped<IFileValidationService, FileValidationService>();
+builder.Services.AddScoped<IStorageService, StorageService>();
+var chatbotSettings = ChatbotSettings.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(chatbotSettings);
+builder.Services.AddHttpClient<ILlmProviderService, GeminiLlmProviderService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(25);
+});
+builder.Services.AddScoped<IChatbotService, ChatbotService>();
 
 // ─── Controllers + JSON ───────────────────────────────────────────────────────
 builder.Services.AddControllers()

@@ -186,6 +186,12 @@ public class AgentService : IAgentService
                 Id = f.Id,
                 FileName = f.FileName,
                 FileUrl = f.FileUrl,
+                StorageFileId = f.StorageFileId,
+                PreviewUrl = f.StorageFileId.HasValue
+                    ? $"/api/storage/{f.StorageFileId.Value}/preview"
+                    : (f.FileUrl.Contains("/download", StringComparison.OrdinalIgnoreCase)
+                        ? f.FileUrl.Replace("/download", "/preview", StringComparison.OrdinalIgnoreCase)
+                        : null),
                 FileSize = f.FileSize,
                 FileType = f.FileType,
                 CreatedAt = f.CreatedAt
@@ -590,15 +596,42 @@ public class AgentService : IAgentService
         return MapAssignedJob(a);
     }
 
-    public async Task<JobFileResponse> UploadJobFileAsync(Guid userId, Guid jobId, string fileName, string fileUrl, long? fileSize, string? fileType)
+    public async Task<JobFileResponse> UploadJobFileAsync(Guid userId, Guid jobId, string fileName, string fileUrl, Guid? storageFileId, long? fileSize, string? fileType)
     {
         var agent = await GetAgentProfileAsync(userId);
         if (!await _db.JobListings.AnyAsync(j => j.Id == jobId && j.AgentId == agent.Id))
             throw new KeyNotFoundException("İlan bulunamadı.");
-        var file = new JobFile { JobId = jobId, FileName = fileName, FileUrl = fileUrl, FileSize = (int?)fileSize, FileType = fileType, UploadedBy = userId };
+        var file = new JobFile { JobId = jobId, FileName = fileName, FileUrl = fileUrl, StorageFileId = storageFileId, FileSize = (int?)fileSize, FileType = fileType, UploadedBy = userId };
         _db.JobFiles.Add(file);
         await _db.SaveChangesAsync();
-        return new JobFileResponse { Id = file.Id, FileName = file.FileName, FileUrl = file.FileUrl, FileSize = file.FileSize, FileType = file.FileType, CreatedAt = file.CreatedAt };
+        return new JobFileResponse
+        {
+            Id = file.Id,
+            FileName = file.FileName,
+            FileUrl = file.FileUrl,
+            StorageFileId = file.StorageFileId,
+            PreviewUrl = file.StorageFileId.HasValue
+                ? $"/api/storage/{file.StorageFileId.Value}/preview"
+                : (file.FileUrl.Contains("/download", StringComparison.OrdinalIgnoreCase)
+                    ? file.FileUrl.Replace("/download", "/preview", StringComparison.OrdinalIgnoreCase)
+                    : null),
+            FileSize = file.FileSize,
+            FileType = file.FileType,
+            CreatedAt = file.CreatedAt
+        };
+    }
+
+    public async Task<Guid?> SetJobListingImageAsync(Guid userId, Guid jobId, Guid storageFileId)
+    {
+        var agent = await GetAgentProfileAsync(userId);
+        var job = await _db.JobListings.FirstOrDefaultAsync(j => j.Id == jobId && j.AgentId == agent.Id)
+            ?? throw new KeyNotFoundException("Ä°lan bulunamadÄ±.");
+
+        var previousStorageFileId = job.ListingImageStorageFileId;
+        job.ListingImageStorageFileId = storageFileId;
+        job.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return previousStorageFileId;
     }
 
     // ─── SUBCONTRACTORS ──────────────────────────────────────────────────────
@@ -665,6 +698,8 @@ public class AgentService : IAgentService
         AgentId = j.AgentId,
         AgentCompanyName = j.Agent?.CompanyName ?? string.Empty,
         AgentLogoUrl = j.Agent?.LogoUrl,
+        ListingImageStorageFileId = j.ListingImageStorageFileId,
+        ListingImagePreviewUrl = j.ListingImageStorageFileId.HasValue ? $"/api/storage/{j.ListingImageStorageFileId.Value}/preview" : null,
         Title = j.Title,
         ListingType = j.ListingType,
         ShipName = j.ShipName,
@@ -683,6 +718,7 @@ public class AgentService : IAgentService
         Deadline = j.Deadline,
         CreatedAt = j.CreatedAt
     };
+
 
     private static AssignedJobResponse MapAssignedJob(AssignedJob a) => new()
     {
