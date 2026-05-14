@@ -23,9 +23,9 @@ public class AssignedJob
     /// <summary>0-100 yüzde tamamlanma</summary>
     public int Progress { get; set; } = 0;
 
-    /// <summary>'planning' | 'in_progress' | 'review' | 'completed'</summary>
+    /// <summary>'started' | 'in_progress' | 'review' | 'completed'</summary>
     [MaxLength(30)]
-    public string Status { get; set; } = "planning";
+    public string Status { get; set; } = "started";
 
     public DateOnly? StartDate { get; set; }
     public DateOnly? DueDate { get; set; }

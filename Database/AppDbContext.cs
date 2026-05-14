@@ -152,6 +152,13 @@ public class AppDbContext : DbContext
              .WithMany()
              .HasForeignKey(l => l.CreatedBy)
              .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(l => l.Reviewer)
+             .WithMany()
+             .HasForeignKey(l => l.ReviewedBy)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasIndex(l => new { l.AssignedJobId, l.ReviewStatus });
         });
 
         // ── JobReport ─────────────────────────────────────────

@@ -45,10 +45,21 @@ public class UpdateAssignedJobRequest
     public DateOnly? DueDate { get; set; }
 }
 
+public class UpdateJobProgressRequest
+{
+    public string Status { get; set; } = string.Empty;
+    public string? Note { get; set; }
+}
+
 public class AddJobLogRequest
 {
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
+}
+
+public class ReviewJobLogRequest
+{
+    public string? Note { get; set; }
 }
 
 // ──────────────────── RESPONSE ───────────────────
@@ -126,6 +137,16 @@ public class JobLogResponse
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public string? FileUrl { get; set; }
+    public string? FileName { get; set; }
+    public string? FileType { get; set; }
+    public long? FileSize { get; set; }
+    public string ReviewStatus { get; set; } = string.Empty;
+    public Guid CreatedBy { get; set; }
+    public Guid? ReviewedBy { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public string? ReviewNote { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

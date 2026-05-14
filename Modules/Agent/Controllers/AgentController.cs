@@ -130,6 +130,7 @@ public class AgentController : ControllerBase
 
     // POST /api/agent/jobs/:id/files
     [HttpPost("jobs/{id:guid}/files")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadJobFile(Guid id, IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -187,6 +188,22 @@ public class AgentController : ControllerBase
     {
         var result = await _svc.AddJobLogAsync(UserId, id, req);
         return StatusCode(201, ApiResponse<JobLogResponse>.Ok(result));
+    }
+
+    // PUT /api/agent/assigned-jobs/:id/logs/:logId/approve
+    [HttpPut("assigned-jobs/{id:guid}/logs/{logId:guid}/approve")]
+    public async Task<IActionResult> ApproveJobLog(Guid id, Guid logId, [FromBody] ReviewJobLogRequest req)
+    {
+        var result = await _svc.ApproveJobLogAsync(UserId, id, logId, req);
+        return Ok(ApiResponse<JobLogResponse>.Ok(result, "Süreç logu onaylandı."));
+    }
+
+    // PUT /api/agent/assigned-jobs/:id/logs/:logId/reject
+    [HttpPut("assigned-jobs/{id:guid}/logs/{logId:guid}/reject")]
+    public async Task<IActionResult> RejectJobLog(Guid id, Guid logId, [FromBody] ReviewJobLogRequest req)
+    {
+        var result = await _svc.RejectJobLogAsync(UserId, id, logId, req);
+        return Ok(ApiResponse<JobLogResponse>.Ok(result, "Süreç logu reddedildi."));
     }
 
     // POST /api/agent/assigned-jobs/:id/request-report

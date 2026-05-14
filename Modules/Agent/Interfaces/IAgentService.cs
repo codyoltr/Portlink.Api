@@ -27,6 +27,8 @@ public interface IAgentService
     Task<List<AssignedJobResponse>> GetAssignedJobsAsync(Guid userId, string? status, int page, int pageSize);
     Task<AssignedJobDetailResponse> GetAssignedJobDetailAsync(Guid userId, Guid id);
     Task<JobLogResponse> AddJobLogAsync(Guid userId, Guid assignedJobId, AddJobLogRequest req);
+    Task<JobLogResponse> ApproveJobLogAsync(Guid userId, Guid assignedJobId, Guid logId, ReviewJobLogRequest req);
+    Task<JobLogResponse> RejectJobLogAsync(Guid userId, Guid assignedJobId, Guid logId, ReviewJobLogRequest req);
     Task RequestReportAsync(Guid userId, Guid assignedJobId);
     Task<AssignedJobResponse> CompleteJobAsync(Guid userId, Guid assignedJobId);
     Task<JobFileResponse> UploadJobFileAsync(Guid userId, Guid jobId, string fileName, string fileUrl, long? fileSize, string? fileType);

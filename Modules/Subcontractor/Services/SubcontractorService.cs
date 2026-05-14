@@ -169,8 +169,8 @@ public class SubcontractorService : ISubcontractorService
     public async Task<List<AssignedJobResponse>> GetActiveJobsAsync(Guid userId, int page, int pageSize)
     {
         var sub = await GetProfileAsync(userId);
-        var list = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor)
-            .Where(a => a.SubcontractorId == sub.Id)
+        var list = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor).Include(a => a.Offer)
+            .Where(a => a.SubcontractorId == sub.Id && a.Status != "completed")
             .OrderByDescending(a => a.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         return list.Select(MapAssignedJob).ToList();
     }
@@ -178,7 +178,7 @@ public class SubcontractorService : ISubcontractorService
     public async Task<AssignedJobDetailResponse> GetActiveJobDetailAsync(Guid userId, Guid id)
     {
         var sub = await GetProfileAsync(userId);
-        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor)
+        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer)
             .Include(x => x.JobLogs).Include(x => x.JobReports)
             .FirstOrDefaultAsync(x => x.Id == id && x.SubcontractorId == sub.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
@@ -192,6 +192,7 @@ public class SubcontractorService : ISubcontractorService
             AgentLogoUrl = a.Agent.LogoUrl,
             AgentCompanyName = a.Agent.CompanyName,
             SubcontractorUserId = a.Subcontractor.UserId,
+            SubcontractorProfileId = a.Subcontractor.Id,
             SubcontractorCompanyName = a.Subcontractor.CompanyName,
             Progress = a.Progress,
             Status = a.Status,
@@ -199,7 +200,9 @@ public class SubcontractorService : ISubcontractorService
             DueDate = a.DueDate,
             CompletedAt = a.CompletedAt,
             CreatedAt = a.CreatedAt,
-            Logs = a.JobLogs.OrderByDescending(l => l.CreatedAt).Select(l => new JobLogResponse { Id = l.Id, Title = l.Title, Description = l.Description, CreatedAt = l.CreatedAt }).ToList(),
+            OfferPrice = a.Offer?.Price ?? 0,
+            OfferCurrency = a.Offer?.Currency ?? "TRY",
+            Logs = a.JobLogs.OrderByDescending(l => l.CreatedAt).Select(MapJobLog).ToList(),
             Reports = a.JobReports.OrderByDescending(r => r.CreatedAt).Select(r => new JobReportResponse { Id = r.Id, FileName = r.FileName, FileUrl = r.FileUrl, FileSize = r.FileSize, FileType = r.FileType, CreatedAt = r.CreatedAt }).ToList()
         };
     }
@@ -207,11 +210,17 @@ public class SubcontractorService : ISubcontractorService
     public async Task<AssignedJobResponse> UpdateActiveJobAsync(Guid userId, Guid id, UpdateAssignedJobRequest req)
     {
         var sub = await GetProfileAsync(userId);
-        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor)
+        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer)
             .FirstOrDefaultAsync(x => x.Id == id && x.SubcontractorId == sub.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
-        if (req.Progress.HasValue) a.Progress = Math.Clamp(req.Progress.Value, 0, 100);
-        if (req.Status != null) a.Status = req.Status;
+        if (req.Progress.HasValue) a.Progress = Math.Clamp(req.Progress.Value, 0, 90);
+        if (req.Status != null)
+        {
+            if (req.Status == "completed")
+                throw new InvalidOperationException("İşi tamamlamak için bitiş onayı gönderin.");
+            a.Status = NormalizeSubcontractorStatus(req.Status);
+            a.Progress = ProgressForStatus(a.Status, a.Progress);
+        }
         if (req.StartDate.HasValue) a.StartDate = req.StartDate;
         if (req.DueDate.HasValue) a.DueDate = req.DueDate;
         a.UpdatedAt = DateTime.UtcNow;
@@ -223,6 +232,116 @@ public class SubcontractorService : ISubcontractorService
         }
         await _db.SaveChangesAsync();
         return MapAssignedJob(a);
+    }
+
+    public async Task<AssignedJobResponse> UpdateJobProgressAsync(Guid userId, Guid id, UpdateJobProgressRequest req)
+    {
+        var sub = await GetProfileAsync(userId);
+        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer)
+            .FirstOrDefaultAsync(x => x.Id == id && x.SubcontractorId == sub.Id)
+            ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
+
+        if (a.Status == "completed")
+            throw new InvalidOperationException("Tamamlanan iş güncellenemez.");
+
+        var status = NormalizeSubcontractorStatus(req.Status);
+        a.Status = status;
+        a.Progress = ProgressForStatus(status, a.Progress);
+        a.UpdatedAt = DateTime.UtcNow;
+
+        _db.JobLogs.Add(new JobLog
+        {
+            AssignedJobId = a.Id,
+            CreatedBy = userId,
+            Type = "status",
+            Title = StatusTitle(status),
+            Description = req.Note?.Trim(),
+            ReviewStatus = "none"
+        });
+
+        await _db.SaveChangesAsync();
+        return MapAssignedJob(a);
+    }
+
+    public async Task<JobLogResponse> UploadPhotoLogAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType, string? description)
+    {
+        var sub = await GetProfileAsync(userId);
+        var assigned = await _db.AssignedJobs.Include(a => a.JobListing)
+            .FirstOrDefaultAsync(a => a.Id == assignedJobId && a.SubcontractorId == sub.Id)
+            ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
+
+        if (assigned.Status == "completed")
+            throw new InvalidOperationException("Tamamlanan işe süreç logu eklenemez.");
+
+        assigned.Status = "review";
+        assigned.Progress = Math.Max(assigned.Progress, 80);
+        assigned.UpdatedAt = DateTime.UtcNow;
+
+        var log = new JobLog
+        {
+            AssignedJobId = assigned.Id,
+            CreatedBy = userId,
+            Type = "photo",
+            Title = "Fotoğraflı süreç logu",
+            Description = description?.Trim(),
+            FileName = fileName,
+            FileUrl = fileUrl,
+            FileSize = fileSize,
+            FileType = fileType,
+            ReviewStatus = "pending"
+        };
+        _db.JobLogs.Add(log);
+
+        var agentUserId = await _db.AgentProfiles.Where(a => a.Id == assigned.AgentId).Select(a => a.UserId).FirstAsync();
+        _db.Notifications.Add(new Notification
+        {
+            UserId = agentUserId,
+            Type = "JOB_LOG_PENDING_REVIEW",
+            Title = "Süreç Logu Onay Bekliyor",
+            Body = $"{assigned.JobListing.Title} için taşeron fotoğraflı süreç logu yükledi.",
+            Data = System.Text.Json.JsonSerializer.Serialize(new { assignedJobId, logId = log.Id })
+        });
+
+        await _db.SaveChangesAsync();
+        return MapJobLog(log);
+    }
+
+    public async Task<AssignedJobResponse> SubmitJobForCompletionAsync(Guid userId, Guid assignedJobId, string? note)
+    {
+        var sub = await GetProfileAsync(userId);
+        var assigned = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor).Include(a => a.Offer)
+            .FirstOrDefaultAsync(a => a.Id == assignedJobId && a.SubcontractorId == sub.Id)
+            ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
+
+        if (assigned.Status == "completed")
+            throw new InvalidOperationException("İş zaten tamamlandı.");
+
+        assigned.Status = "review";
+        assigned.Progress = Math.Max(assigned.Progress, 90);
+        assigned.UpdatedAt = DateTime.UtcNow;
+
+        _db.JobLogs.Add(new JobLog
+        {
+            AssignedJobId = assigned.Id,
+            CreatedBy = userId,
+            Type = "status",
+            Title = "İş bitiş onayına gönderildi",
+            Description = note?.Trim(),
+            ReviewStatus = "pending"
+        });
+
+        var agentUserId = await _db.AgentProfiles.Where(a => a.Id == assigned.AgentId).Select(a => a.UserId).FirstAsync();
+        _db.Notifications.Add(new Notification
+        {
+            UserId = agentUserId,
+            Type = "JOB_COMPLETION_REQUESTED",
+            Title = "İş Bitiş Onayı Bekliyor",
+            Body = $"{assigned.JobListing.Title} için taşeron işi bitirdiğini bildirdi.",
+            Data = System.Text.Json.JsonSerializer.Serialize(new { assignedJobId })
+        });
+
+        await _db.SaveChangesAsync();
+        return MapAssignedJob(assigned);
     }
 
     public async Task<JobReportResponse> UploadReportAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType)
@@ -360,6 +479,7 @@ public class SubcontractorService : ISubcontractorService
         AgentProfileId = a.AgentId,
         AgentLogoUrl = a.Agent?.LogoUrl,
         SubcontractorUserId = a.Subcontractor?.UserId ?? Guid.Empty,
+        SubcontractorProfileId = a.Subcontractor?.Id ?? Guid.Empty,
         AgentCompanyName = a.Agent?.CompanyName ?? string.Empty,
         SubcontractorCompanyName = a.Subcontractor?.CompanyName ?? string.Empty,
         Progress = a.Progress,
@@ -367,7 +487,56 @@ public class SubcontractorService : ISubcontractorService
         StartDate = a.StartDate,
         DueDate = a.DueDate,
         CompletedAt = a.CompletedAt,
-        CreatedAt = a.CreatedAt
+        CreatedAt = a.CreatedAt,
+        OfferPrice = a.Offer?.Price ?? 0,
+        OfferCurrency = a.Offer?.Currency ?? "TRY"
+    };
+
+    private static JobLogResponse MapJobLog(JobLog l) => new()
+    {
+        Id = l.Id,
+        Title = l.Title,
+        Description = l.Description,
+        Type = l.Type,
+        FileUrl = l.FileUrl,
+        FileName = l.FileName,
+        FileType = l.FileType,
+        FileSize = l.FileSize,
+        ReviewStatus = l.ReviewStatus,
+        CreatedBy = l.CreatedBy,
+        ReviewedBy = l.ReviewedBy,
+        ReviewedAt = l.ReviewedAt,
+        ReviewNote = l.ReviewNote,
+        CreatedAt = l.CreatedAt
+    };
+
+    private static string NormalizeSubcontractorStatus(string status)
+    {
+        var normalized = status.Trim().ToLowerInvariant();
+        return normalized switch
+        {
+            "started" or "basladi" or "başladı" => "started",
+            "in_progress" or "devam" or "devam_ediyor" or "devam ediyor" => "in_progress",
+            "review" => "review",
+            "completed" or "bitti" => throw new InvalidOperationException("Bitti durumu acente onayı gerektirir."),
+            _ => throw new InvalidOperationException("Geçersiz iş durumu.")
+        };
+    }
+
+    private static int ProgressForStatus(string status, int currentProgress) => status switch
+    {
+        "started" => Math.Max(currentProgress, 25),
+        "in_progress" => Math.Max(currentProgress, 60),
+        "review" => Math.Max(currentProgress, 80),
+        _ => currentProgress
+    };
+
+    private static string StatusTitle(string status) => status switch
+    {
+        "started" => "İş başladı",
+        "in_progress" => "İş devam ediyor",
+        "review" => "Acente onayı bekleniyor",
+        _ => "İş durumu güncellendi"
     };
 
     public async Task<AgentProfileResponse> GetAgentPublicProfileAsync(Guid userId, Guid agentProfileId)

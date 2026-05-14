@@ -156,8 +156,65 @@ public class SubcontractorController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
     }
 
+    // PUT /api/subcontractor/active-jobs/:id/progress
+    [HttpPut("active-jobs/{id:guid}/progress")]
+    public async Task<IActionResult> UpdateJobProgress(Guid id, [FromBody] UpdateJobProgressRequest req)
+    {
+        try
+        {
+            var result = await _svc.UpdateJobProgressAsync(UserId, id, req);
+            return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "İş durumu güncellendi."));
+        }
+        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
+    }
+
+    // POST /api/subcontractor/active-jobs/:id/logs/photo
+    [HttpPost("active-jobs/{id:guid}/logs/photo")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadPhotoLog(Guid id, IFormFile file, [FromForm] string? description)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse.Fail("Dosya seçilmedi."));
+        if (file.Length > 10 * 1024 * 1024)
+            return BadRequest(ApiResponse.Fail("Fotoğraf boyutu 10 MB'ı geçemez."));
+
+        var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
+        if (ext is not ("jpg" or "jpeg" or "png" or "webp"))
+            return BadRequest(ApiResponse.Fail("Yalnızca JPG, PNG veya WebP yüklenebilir."));
+
+        var uploads = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "job-logs");
+        Directory.CreateDirectory(uploads);
+        var fileName = $"{Guid.NewGuid()}.{ext}";
+        var filePath = Path.Combine(uploads, fileName);
+        await using var stream = System.IO.File.Create(filePath);
+        await file.CopyToAsync(stream);
+
+        try
+        {
+            var result = await _svc.UploadPhotoLogAsync(UserId, id, file.FileName, $"/uploads/job-logs/{fileName}", file.Length, ext, description);
+            return StatusCode(201, ApiResponse<JobLogResponse>.Ok(result, "Fotoğraflı süreç logu acente onayına gönderildi."));
+        }
+        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
+    }
+
+    // POST /api/subcontractor/active-jobs/:id/submit-completion
+    [HttpPost("active-jobs/{id:guid}/submit-completion")]
+    public async Task<IActionResult> SubmitJobForCompletion(Guid id, [FromBody] AddJobLogRequest req)
+    {
+        try
+        {
+            var result = await _svc.SubmitJobForCompletionAsync(UserId, id, req.Description);
+            return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "İş bitiş onayı acenteye gönderildi."));
+        }
+        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
+    }
+
     // POST /api/subcontractor/active-jobs/:id/reports
     [HttpPost("active-jobs/{id:guid}/reports")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadReport(Guid id, IFormFile file)
     {
         if (file == null || file.Length == 0)
