@@ -314,6 +314,8 @@ public class AppDbContext : DbContext
              .WithMany(u => u.RefreshTokens)
              .HasForeignKey(r => r.UserId)
              .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(r => r.TokenHash).IsUnique();
         });
 
         // ── Rating ────────────────────────────────────────────

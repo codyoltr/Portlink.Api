@@ -54,7 +54,11 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Logout()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub");
+
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized(ApiResponse.Fail("Geçersiz kullanıcı tokenı."));
         await _authService.LogoutAsync(userId);
         return Ok(ApiResponse.Ok("Çıkış yapıldı."));
     }
@@ -64,7 +68,11 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Me()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub");
+
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized(ApiResponse.Fail("Geçersiz kullanıcı tokenı."));
         var result = await _authService.GetMeAsync(userId);
         return Ok(ApiResponse<UserProfileResponse>.Ok(result));
     }
