@@ -266,12 +266,17 @@ namespace Portlink.Api.Migrations
                     b.Property<Guid>("JobId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("StorageFileId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("UploadedBy")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("JobId");
+
+                    b.HasIndex("StorageFileId");
 
                     b.HasIndex("UploadedBy");
 
@@ -313,6 +318,9 @@ namespace Portlink.Api.Migrations
 
                     b.Property<DateTime?>("Eta")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ListingImageStorageFileId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ListingType")
                         .IsRequired()
@@ -364,6 +372,8 @@ namespace Portlink.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AgentId");
+
+                    b.HasIndex("ListingImageStorageFileId");
 
                     b.HasIndex("PortId");
 
@@ -953,6 +963,96 @@ namespace Portlink.Api.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("Portlink.Api.Modules.Storage.Entities.StorageFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BucketName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("FileCategory")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileExtension")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid?>("RelatedEntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RelatedEntityType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ReplacedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("S3Key")
+                        .IsRequired()
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)");
+
+                    b.Property<string>("SafeFileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<long>("SizeInBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UploadedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("UploadedByUserId");
+
+                    b.HasIndex("RelatedEntityType", "RelatedEntityId");
+
+                    b.ToTable("StorageFiles");
+                });
+
             modelBuilder.Entity("AgentProfilePort", b =>
                 {
                     b.HasOne("Portlink.Api.Modules.Auth.Entities.AgentProfile", null)
@@ -1094,6 +1194,11 @@ namespace Portlink.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Portlink.Api.Modules.Storage.Entities.StorageFile", "StorageFile")
+                        .WithMany()
+                        .HasForeignKey("StorageFileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Portlink.Api.Entities.User", "Uploader")
                         .WithMany()
                         .HasForeignKey("UploadedBy")
@@ -1101,6 +1206,8 @@ namespace Portlink.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("JobListing");
+
+                    b.Navigation("StorageFile");
 
                     b.Navigation("Uploader");
                 });
@@ -1113,11 +1220,18 @@ namespace Portlink.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Portlink.Api.Modules.Storage.Entities.StorageFile", "ListingImageStorageFile")
+                        .WithMany()
+                        .HasForeignKey("ListingImageStorageFileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Portlink.Api.Entities.Port", null)
                         .WithMany("JobListings")
                         .HasForeignKey("PortId");
 
                     b.Navigation("Agent");
+
+                    b.Navigation("ListingImageStorageFile");
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.JobLog", b =>
@@ -1274,6 +1388,17 @@ namespace Portlink.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Modules.Storage.Entities.StorageFile", b =>
+                {
+                    b.HasOne("Portlink.Api.Entities.User", "UploadedByUser")
+                        .WithMany()
+                        .HasForeignKey("UploadedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UploadedByUser");
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.AssignedJob", b =>

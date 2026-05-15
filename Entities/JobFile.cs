@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Portlink.Api.Modules.Storage.Entities;
 
 namespace Portlink.Api.Entities;
 
@@ -22,6 +23,9 @@ public class JobFile
     /// <summary>'pdf' | 'image' | 'zip'</summary>
     [MaxLength(20)]
     public string? FileType { get; set; }
+
+    public Guid? StorageFileId { get; set; }
+    public StorageFile? StorageFile { get; set; }
 
     public Guid UploadedBy { get; set; }
     public User Uploader { get; set; } = null!;
