@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Portlink.Api.Modules.Auth.Entities;
+using Portlink.Api.Modules.Storage.Entities;
 
 namespace Portlink.Api.Entities;
 
@@ -53,6 +54,8 @@ public class JobListing
     public int OfferCount { get; set; } = 0;
 
     public DateTime? Deadline { get; set; }
+    public Guid? ListingImageStorageFileId { get; set; }
+    public StorageFile? ListingImageStorageFile { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

@@ -103,7 +103,21 @@ public class SubcontractorService : ISubcontractorService
             OfferCount = job.OfferCount,
             Deadline = job.Deadline,
             CreatedAt = job.CreatedAt,
-            Files = job.JobFiles.Select(f => new JobFileResponse { Id = f.Id, FileName = f.FileName, FileUrl = f.FileUrl, FileSize = f.FileSize, FileType = f.FileType, CreatedAt = f.CreatedAt }).ToList()
+            Files = job.JobFiles.Select(f => new JobFileResponse
+            {
+                Id = f.Id,
+                FileName = f.FileName,
+                FileUrl = f.FileUrl,
+                StorageFileId = f.StorageFileId,
+                PreviewUrl = f.StorageFileId.HasValue
+                    ? $"/api/storage/{f.StorageFileId.Value}/preview"
+                    : (f.FileUrl.Contains("/download", StringComparison.OrdinalIgnoreCase)
+                        ? f.FileUrl.Replace("/download", "/preview", StringComparison.OrdinalIgnoreCase)
+                        : null),
+                FileSize = f.FileSize,
+                FileType = f.FileType,
+                CreatedAt = f.CreatedAt
+            }).ToList()
         };
     }
 
@@ -314,6 +328,8 @@ public class SubcontractorService : ISubcontractorService
         AgentId = j.AgentId,
         AgentCompanyName = j.Agent?.CompanyName ?? string.Empty,
         AgentLogoUrl = j.Agent?.LogoUrl,
+        ListingImageStorageFileId = j.ListingImageStorageFileId,
+        ListingImagePreviewUrl = j.ListingImageStorageFileId.HasValue ? $"/api/storage/{j.ListingImageStorageFileId.Value}/preview" : null,
         Title = j.Title,
         ListingType = j.ListingType,
         ShipName = j.ShipName,
@@ -332,6 +348,7 @@ public class SubcontractorService : ISubcontractorService
         Deadline = j.Deadline,
         CreatedAt = j.CreatedAt
     };
+
 
     private static OfferResponse MapOffer(Offer o) => new()
     {
