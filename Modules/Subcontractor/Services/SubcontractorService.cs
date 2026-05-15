@@ -196,8 +196,8 @@ public class SubcontractorService : ISubcontractorService
             SubcontractorCompanyName = a.Subcontractor.CompanyName,
             Progress = a.Progress,
             Status = a.Status,
-            StartDate = a.StartDate,
-            DueDate = a.DueDate,
+            StartDate = EffectiveStartDate(a),
+            DueDate = EffectiveDueDate(a),
             CompletedAt = a.CompletedAt,
             CreatedAt = a.CreatedAt,
             OfferPrice = a.Offer?.Price ?? 0,
@@ -273,8 +273,8 @@ public class SubcontractorService : ISubcontractorService
         if (assigned.Status == "completed")
             throw new InvalidOperationException("Tamamlanan işe süreç logu eklenemez.");
 
-        assigned.Status = "review";
-        assigned.Progress = Math.Max(assigned.Progress, 80);
+        assigned.Status = "in_progress";
+        assigned.Progress = Math.Max(assigned.Progress, 60);
         assigned.UpdatedAt = DateTime.UtcNow;
 
         var log = new JobLog
@@ -282,13 +282,13 @@ public class SubcontractorService : ISubcontractorService
             AssignedJobId = assigned.Id,
             CreatedBy = userId,
             Type = "photo",
-            Title = "Fotoğraflı süreç logu",
+            Title = "Başlangıç fotoğrafı yüklendi",
             Description = description?.Trim(),
             FileName = fileName,
             FileUrl = fileUrl,
             FileSize = fileSize,
             FileType = fileType,
-            ReviewStatus = "pending"
+            ReviewStatus = "none"
         };
         _db.JobLogs.Add(log);
 
@@ -296,9 +296,9 @@ public class SubcontractorService : ISubcontractorService
         _db.Notifications.Add(new Notification
         {
             UserId = agentUserId,
-            Type = "JOB_LOG_PENDING_REVIEW",
-            Title = "Süreç Logu Onay Bekliyor",
-            Body = $"{assigned.JobListing.Title} için taşeron fotoğraflı süreç logu yükledi.",
+            Type = "JOB_LOG_ADDED",
+            Title = "Süreç Logu Eklendi",
+            Body = $"{assigned.JobListing.Title} için taşeron başlangıç fotoğrafı yükledi.",
             Data = System.Text.Json.JsonSerializer.Serialize(new { assignedJobId, logId = log.Id })
         });
 
@@ -306,7 +306,7 @@ public class SubcontractorService : ISubcontractorService
         return MapJobLog(log);
     }
 
-    public async Task<AssignedJobResponse> SubmitJobForCompletionAsync(Guid userId, Guid assignedJobId, string? note)
+    public async Task<AssignedJobResponse> SubmitJobForCompletionAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType, string? note)
     {
         var sub = await GetProfileAsync(userId);
         var assigned = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor).Include(a => a.Offer)
@@ -324,9 +324,13 @@ public class SubcontractorService : ISubcontractorService
         {
             AssignedJobId = assigned.Id,
             CreatedBy = userId,
-            Type = "status",
-            Title = "İş bitiş onayına gönderildi",
+            Type = "completion_request",
+            Title = "Bitti talebi gönderildi",
             Description = note?.Trim(),
+            FileName = fileName,
+            FileUrl = fileUrl,
+            FileSize = fileSize,
+            FileType = fileType,
             ReviewStatus = "pending"
         });
 
@@ -484,13 +488,23 @@ public class SubcontractorService : ISubcontractorService
         SubcontractorCompanyName = a.Subcontractor?.CompanyName ?? string.Empty,
         Progress = a.Progress,
         Status = a.Status,
-        StartDate = a.StartDate,
-        DueDate = a.DueDate,
+        StartDate = EffectiveStartDate(a),
+        DueDate = EffectiveDueDate(a),
         CompletedAt = a.CompletedAt,
         CreatedAt = a.CreatedAt,
         OfferPrice = a.Offer?.Price ?? 0,
         OfferCurrency = a.Offer?.Currency ?? "TRY"
     };
+
+    private static DateOnly EffectiveStartDate(AssignedJob a)
+        => a.StartDate ?? DateOnly.FromDateTime(a.CreatedAt);
+
+    private static DateOnly? EffectiveDueDate(AssignedJob a)
+    {
+        if (a.DueDate.HasValue) return a.DueDate;
+        if (a.Offer?.EstimatedDays is not int estimatedDays) return null;
+        return EffectiveStartDate(a).AddDays(estimatedDays);
+    }
 
     private static JobLogResponse MapJobLog(JobLog l) => new()
     {
@@ -533,9 +547,9 @@ public class SubcontractorService : ISubcontractorService
 
     private static string StatusTitle(string status) => status switch
     {
-        "started" => "İş başladı",
-        "in_progress" => "İş devam ediyor",
-        "review" => "Acente onayı bekleniyor",
+        "started" => "Başladı",
+        "in_progress" => "Devam ediyor",
+        "review" => "Acente onayı bekliyor",
         _ => "İş durumu güncellendi"
     };
 

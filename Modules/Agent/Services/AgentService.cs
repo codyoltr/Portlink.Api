@@ -444,6 +444,11 @@ public class AgentService : IAgentService
         others.ForEach(o => { o.Status = "rejected"; o.UpdatedAt = DateTime.UtcNow; });
         offer.JobListing.Status = "reviewing"; offer.JobListing.UpdatedAt = DateTime.UtcNow;
 
+        var startDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        var dueDate = offer.EstimatedDays.HasValue
+            ? startDate.AddDays(offer.EstimatedDays.Value)
+            : (DateOnly?)null;
+
         var assigned = new AssignedJob
         {
             JobId = offer.JobId,
@@ -451,7 +456,9 @@ public class AgentService : IAgentService
             AgentId = agent.Id,
             SubcontractorId = offer.SubcontractorId,
             Status = "started",
-            Progress = 25
+            Progress = 25,
+            StartDate = startDate,
+            DueDate = dueDate
         };
         _db.AssignedJobs.Add(assigned);
         await _db.SaveChangesAsync();
@@ -461,7 +468,7 @@ public class AgentService : IAgentService
         {
             AssignedJobId = assigned.Id,
             CreatedBy = userId,
-            Title = "İş başlatıldı",
+            Title = "Başladı",
             Description = "Teklif kabul edildi, iş başlangıç aşamasına alındı.",
             Type = "status",
             ReviewStatus = "none"
@@ -530,8 +537,8 @@ public class AgentService : IAgentService
             SubcontractorProfileId = a.Subcontractor.Id,
             Progress = a.Progress,
             Status = a.Status,
-            StartDate = a.StartDate,
-            DueDate = a.DueDate,
+            StartDate = EffectiveStartDate(a),
+            DueDate = EffectiveDueDate(a),
             CompletedAt = a.CompletedAt,
             CreatedAt = a.CreatedAt,
             OfferPrice = a.Offer?.Price ?? 0,
@@ -564,12 +571,14 @@ public class AgentService : IAgentService
         if (log.ReviewStatus != "pending")
             throw new InvalidOperationException("Yalnızca onay bekleyen loglar onaylanabilir.");
 
+        var completesJob = log.Type == "completion_request";
+
         log.ReviewStatus = "approved";
         log.ReviewedBy = userId;
         log.ReviewedAt = DateTime.UtcNow;
         log.ReviewNote = req.Note?.Trim();
 
-        if (assigned.Status != "completed")
+        if (assigned.Status != "completed" && !completesJob)
         {
             assigned.Status = "in_progress";
             assigned.Progress = Math.Max(assigned.Progress, 60);
@@ -586,6 +595,9 @@ public class AgentService : IAgentService
         });
 
         await _db.SaveChangesAsync();
+        if (completesJob)
+            await CompleteJobAsync(userId, assignedJobId);
+
         return MapJobLog(log);
     }
 
@@ -666,7 +678,7 @@ public class AgentService : IAgentService
                 Description = $"Hakediş: {a.JobListing.Title}"
             });
         }
-        _db.JobLogs.Add(new JobLog { AssignedJobId = a.Id, CreatedBy = userId, Title = "İş tamamlandı", Description = "Acente onayladı." });
+        _db.JobLogs.Add(new JobLog { AssignedJobId = a.Id, CreatedBy = userId, Type = "status", Title = "Bitti", Description = "Acente onayladı.", ReviewStatus = "none" });
         await _db.SaveChangesAsync();
         await tx.CommitAsync();
         var subUserId = await _db.SubcontractorProfiles.Where(s => s.Id == a.SubcontractorId).Select(s => s.UserId).FirstAsync();
@@ -837,13 +849,23 @@ public class AgentService : IAgentService
         SubcontractorCompanyName = a.Subcontractor?.CompanyName ?? string.Empty,
         Progress = a.Progress,
         Status = a.Status,
-        StartDate = a.StartDate,
-        DueDate = a.DueDate,
+        StartDate = EffectiveStartDate(a),
+        DueDate = EffectiveDueDate(a),
         CompletedAt = a.CompletedAt,
         CreatedAt = a.CreatedAt,
         OfferPrice = a.Offer?.Price ?? 0,
         OfferCurrency = a.Offer?.Currency ?? "TRY"
     };
+
+    private static DateOnly EffectiveStartDate(AssignedJob a)
+        => a.StartDate ?? DateOnly.FromDateTime(a.CreatedAt);
+
+    private static DateOnly? EffectiveDueDate(AssignedJob a)
+    {
+        if (a.DueDate.HasValue) return a.DueDate;
+        if (a.Offer?.EstimatedDays is not int estimatedDays) return null;
+        return EffectiveStartDate(a).AddDays(estimatedDays);
+    }
 
     private static JobLogResponse MapJobLog(JobLog l) => new()
     {
