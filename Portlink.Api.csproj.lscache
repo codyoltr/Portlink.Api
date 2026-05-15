@@ -43,8 +43,8 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 /debug:portable
 /filealign:512
 /optimize-
-/out:obj/Debug/net9.0/Portlink.Api.dll
-/refout:obj/Debug/net9.0/refint/Portlink.Api.dll
+/out:obj\Debug\net9.0\Portlink.Api.dll
+/refout:obj\Debug\net9.0\refint\Portlink.Api.dll
 /target:exe
 /warnaserror-
 /utf8output
@@ -83,10 +83,8 @@ Entities/
  User.cs
  WalletTransaction.cs
 Migrations/
- 20260514173159_mirationsss.cs
- 20260514173159_mirationsss.Designer.cs
- 20260514210336_AddJobLogReviewFields.cs
- 20260514210336_AddJobLogReviewFields.Designer.cs
+ 20260515135040_newwqejkwqe.cs
+ 20260515135040_newwqejkwqe.Designer.cs
  AppDbContextModelSnapshot.cs
 Modules/Agent/
  Controllers/AgentController.cs
@@ -99,6 +97,17 @@ Modules/Auth/
  Entities/RefreshToken.cs
  Interfaces/IAuthService.cs
  Services/AuthService.cs
+Modules/Chatbot/
+ Controllers/ChatbotController.cs
+ Dtos/ChatbotDtos.cs
+ Interfaces/
+  IChatbotService.cs
+  ILlmProviderService.cs
+ Prompts/ChatbotPromptBuilder.cs
+ Services/
+  ChatbotService.cs
+  GeminiLlmProviderService.cs
+ Settings/ChatbotSettings.cs
 Modules/Common/
  Dtos/CommonDtos.cs
  Helpers/
@@ -117,6 +126,20 @@ Modules/Messaging/
   NotificationService.cs
 Modules/
  Reference/Controllers/ReferenceController.cs
+ Storage/
+  Controllers/StorageController.cs
+  Dtos/StorageDtos.cs
+  Entities/StorageFile.cs
+  Enums/StorageEnums.cs
+  Interfaces/
+   IFileValidationService.cs
+   IS3StorageProvider.cs
+   IStorageService.cs
+  Services/
+   FileValidationService.cs
+   S3StorageProvider.cs
+   StorageService.cs
+  Settings/StorageSettings.cs
  Subcontractor/
   Controllers/SubcontractorController.cs
   Dtos/SubcontractorProfileDtos.cs
@@ -437,7 +460,10 @@ Program.cs
  aspnetcoreratelimit/5.0.0/lib/net6.0/AspNetCoreRateLimit.dll
  automapper.extensions.microsoft.dependencyinjection/12.0.1/lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll
  automapper/12.0.1/lib/netstandard2.1/AutoMapper.dll
+ awssdk.core/4.0.0.16/lib/net8.0/AWSSDK.Core.dll
+ awssdk.s3/4.0.6.1/lib/net8.0/AWSSDK.S3.dll
  bcrypt.net-next/4.0.3/lib/net6.0/BCrypt.Net-Next.dll
+ dotnetenv/3.1.1/lib/netstandard1.3/DotNetEnv.dll
  fluentvalidation.aspnetcore/11.3.0/lib/net6.0/FluentValidation.AspNetCore.dll
  fluentvalidation.dependencyinjectionextensions/11.5.1/lib/netstandard2.1/FluentValidation.DependencyInjectionExtensions.dll
  fluentvalidation/11.5.1/lib/net7.0/FluentValidation.dll
@@ -478,6 +504,7 @@ Program.cs
  serilog.sinks.debug/2.0.0/lib/netstandard2.1/Serilog.Sinks.Debug.dll
  serilog.sinks.file/5.0.0/lib/net5.0/Serilog.Sinks.File.dll
  serilog/3.1.1/lib/net7.0/Serilog.dll
+ sprache/2.3.1/lib/netstandard2.1/Sprache.dll
  swashbuckle.aspnetcore.swagger/6.6.2/lib/net8.0/Swashbuckle.AspNetCore.Swagger.dll
  swashbuckle.aspnetcore.swaggergen/6.6.2/lib/net8.0/Swashbuckle.AspNetCore.SwaggerGen.dll
  swashbuckle.aspnetcore.swaggerui/6.6.2/lib/net8.0/Swashbuckle.AspNetCore.SwaggerUI.dll
@@ -516,6 +543,9 @@ Program.cs
 <DOTNET>/sdk/9.0.308/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
+<NUGET>/awssdk.s3/4.0.6.1/analyzers/dotnet/cs/
+ AWSSDK.S3.CodeAnalysis.dll
+ SharedAnalysisCode.dll
 <NUGET>/microsoft.codeanalysis.analyzers/3.3.4/analyzers/dotnet/cs/
  Microsoft.CodeAnalysis.Analyzers.dll
  Microsoft.CodeAnalysis.CSharp.Analyzers.dll
