@@ -3,6 +3,8 @@ bin
 obj
 
 # Migration files (if you want to exclude them, otherwise keep them in source control)
+Database/Migrations
+Migrations/
 Migrations
 
 # Environment variables
