@@ -18,5 +18,30 @@ public class JobLog
 
     public string? Description { get; set; }
 
+    [MaxLength(30)]
+    public string Type { get; set; } = "note";
+
+    [MaxLength(500)]
+    public string? FileUrl { get; set; }
+
+    [MaxLength(300)]
+    public string? FileName { get; set; }
+
+    [MaxLength(20)]
+    public string? FileType { get; set; }
+
+    public long? FileSize { get; set; }
+
+    [MaxLength(30)]
+    public string ReviewStatus { get; set; } = "none";
+
+    public Guid? ReviewedBy { get; set; }
+
+    public User? Reviewer { get; set; }
+
+    public DateTime? ReviewedAt { get; set; }
+
+    public string? ReviewNote { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

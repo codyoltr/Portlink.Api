@@ -18,6 +18,9 @@ public interface ISubcontractorService
     Task<List<AssignedJobResponse>> GetActiveJobsAsync(Guid userId, int page, int pageSize);
     Task<AssignedJobDetailResponse> GetActiveJobDetailAsync(Guid userId, Guid id);
     Task<AssignedJobResponse> UpdateActiveJobAsync(Guid userId, Guid id, UpdateAssignedJobRequest req);
+    Task<AssignedJobResponse> UpdateJobProgressAsync(Guid userId, Guid id, UpdateJobProgressRequest req);
+    Task<JobLogResponse> UploadPhotoLogAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType, string? description);
+    Task<AssignedJobResponse> SubmitJobForCompletionAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType, string? note);
     Task<JobReportResponse> UploadReportAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType);
     Task<string> UploadLogoAsync(Guid userId, string logoUrl);
     Task<WalletResponse> GetWalletAsync(Guid userId);
