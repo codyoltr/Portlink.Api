@@ -70,6 +70,8 @@ public class JobListingResponse
     public Guid AgentId { get; set; }
     public string AgentCompanyName { get; set; } = string.Empty;
     public string? AgentLogoUrl { get; set; }
+    public Guid? ListingImageStorageFileId { get; set; }
+    public string? ListingImagePreviewUrl { get; set; }
     public string Title { get; set; } = string.Empty;
     public string ListingType { get; set; } = string.Empty;
     public string? ShipName { get; set; }
@@ -99,6 +101,8 @@ public class JobFileResponse
     public Guid Id { get; set; }
     public string FileName { get; set; } = string.Empty;
     public string FileUrl { get; set; } = string.Empty;
+    public Guid? StorageFileId { get; set; }
+    public string? PreviewUrl { get; set; }
     public long? FileSize { get; set; }
     public string? FileType { get; set; }
     public DateTime CreatedAt { get; set; }

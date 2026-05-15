@@ -115,23 +115,52 @@ public class AuthService : IAuthService
                 .ThenInclude(u => u.AgentProfile)
             .Include(r => r.User)
                 .ThenInclude(u => u.SubcontractorProfile)
-            .FirstOrDefaultAsync(r => r.TokenHash == hash && r.ExpiresAt > DateTime.UtcNow)
+            .FirstOrDefaultAsync(r => r.TokenHash == hash)
             ?? throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş token.");
 
-        // Eski token'ı sil (token rotation)
-        _db.RefreshTokens.Remove(stored);
+        // Eski token'i revoke edip yeni refresh token ile rotation yap.
+        if (!stored.IsActive)
+            throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş token.");
+
+        if (!stored.User.IsActive)
+            throw new UnauthorizedAccessException("Hesabınız devre dışı bırakılmış.");
+
+        var rawRefresh = _jwt.GenerateRefreshToken();
+        var newHash = _jwt.HashToken(rawRefresh);
+        var days = int.Parse(_config["Jwt:RefreshTokenDays"] ?? "7");
+
+        stored.IsRevoked = true;
+        stored.RevokedAt = DateTime.UtcNow;
+        stored.ReplacedByToken = newHash;
+
+        _db.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = stored.UserId,
+            TokenHash = newHash,
+            ExpiresAt = DateTime.UtcNow.AddDays(days)
+        });
         await _db.SaveChangesAsync();
 
-        return await BuildAuthResponseAsync(stored.User, stored.User.AgentProfile, stored.User.SubcontractorProfile);
+        return new AuthResponse
+        {
+            AccessToken = _jwt.GenerateAccessToken(stored.User.Id, stored.User.Email, stored.User.Role),
+            RefreshToken = rawRefresh,
+            User = MapUserProfile(stored.User, stored.User.AgentProfile, stored.User.SubcontractorProfile)
+        };
     }
 
     // ──────────────────────────────── LOGOUT ────────────────────────────────
 
     public async Task LogoutAsync(Guid userId)
     {
-        var tokens = _db.RefreshTokens.Where(r => r.UserId == userId);
-        _db.RefreshTokens.RemoveRange(tokens);
-        await _db.SaveChangesAsync();
+        var now = DateTime.UtcNow;
+
+        await _db.RefreshTokens
+            .Where(r => r.UserId == userId && !r.IsRevoked && r.ExpiresAt > now)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(r => r.IsRevoked, true)
+                .SetProperty(r => r.RevokedAt, now)
+                .SetProperty(r => r.ExpiresAt, now));
     }
 
     // ────────────────────────────── GET ME ──────────────────────────────────

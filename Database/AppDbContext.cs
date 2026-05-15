@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Portlink.Api.Entities;
 using Portlink.Api.Modules.Auth.Entities;
+using Portlink.Api.Modules.Storage.Entities;
 
 namespace Portlink.Api.Data;
 
@@ -26,6 +27,7 @@ public class AppDbContext : DbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Port> Ports => Set<Port>();
     public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
+    public DbSet<StorageFile> StorageFiles => Set<StorageFile>();
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Rating> Ratings => Set<Rating>();
@@ -76,6 +78,11 @@ public class AppDbContext : DbContext
              .HasForeignKey(j => j.AgentId)
              .OnDelete(DeleteBehavior.Cascade);
 
+            e.HasOne(j => j.ListingImageStorageFile)
+             .WithMany()
+             .HasForeignKey(j => j.ListingImageStorageFileId)
+             .OnDelete(DeleteBehavior.SetNull);
+
             e.Property(j => j.SelectedServices)
              .HasColumnType("text[]");
 
@@ -95,6 +102,11 @@ public class AppDbContext : DbContext
              .WithMany()
              .HasForeignKey(f => f.UploadedBy)
              .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(f => f.StorageFile)
+             .WithMany()
+             .HasForeignKey(f => f.StorageFileId)
+             .OnDelete(DeleteBehavior.SetNull);
         });
 
         // ── Offer ─────────────────────────────────────────────
@@ -275,6 +287,22 @@ public class AppDbContext : DbContext
         });
 
         // ── Port ──────────────────────────────────────────────
+        modelBuilder.Entity<StorageFile>(e =>
+        {
+            e.Property(s => s.FileCategory).HasConversion<string>();
+            e.Property(s => s.RelatedEntityType).HasConversion<string>();
+
+            e.HasOne(s => s.UploadedByUser)
+             .WithMany()
+             .HasForeignKey(s => s.UploadedByUserId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasIndex(s => s.UploadedByUserId);
+            e.HasIndex(s => new { s.RelatedEntityType, s.RelatedEntityId });
+            e.HasIndex(s => s.CreatedAt);
+            e.HasIndex(s => s.IsDeleted);
+        });
+
         modelBuilder.Entity<Port>(e =>
         {
             e.HasIndex(p => p.Code).IsUnique();
@@ -321,6 +349,8 @@ public class AppDbContext : DbContext
              .WithMany(u => u.RefreshTokens)
              .HasForeignKey(r => r.UserId)
              .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasIndex(r => r.TokenHash).IsUnique();
         });
 
         // ── Rating ────────────────────────────────────────────

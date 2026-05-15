@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Portlink.Api.DTOs.Agents;
 using Portlink.Api.DTOs.Jobs;
 using Portlink.Api.DTOs.Offers;
-using Portlink.Api.DTOs.Agents;
 using Portlink.Api.Modules.Auth.Dtos;
 using Portlink.Api.Modules.Common.Dtos;
+using Portlink.Api.Modules.Storage.Dtos;
+using Portlink.Api.Modules.Storage.Enums;
+using Portlink.Api.Modules.Storage.Interfaces;
 using System.Security.Claims;
 
 namespace Portlink.Api.Modules.Agent;
@@ -15,12 +18,16 @@ namespace Portlink.Api.Modules.Agent;
 public class AgentController : ControllerBase
 {
     private readonly IAgentService _svc;
+    private readonly IStorageService _storageService;
 
-    public AgentController(IAgentService svc) => _svc = svc;
+    public AgentController(IAgentService svc, IStorageService storageService)
+    {
+        _svc = svc;
+        _storageService = storageService;
+    }
 
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    // GET /api/agent/profile
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
@@ -28,12 +35,11 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<AgentProfileResponse>.Ok(result));
     }
 
-    // PATCH /api/agent/profile
     [HttpPatch("profile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateAgencyProfileRequest req)
     {
         var result = await _svc.UpdateProfileAsync(UserId, req);
-        return Ok(ApiResponse<AgentProfileResponse>.Ok(result, "Profil başarıyla güncellendi."));
+        return Ok(ApiResponse<AgentProfileResponse>.Ok(result, "Profil basariyla guncellendi."));
     }
 
     // POST /api/agent/profile/logo
@@ -70,7 +76,6 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<AgentDashboardStatsResponse>.Ok(result));
     }
 
-    // GET /api/agent/jobs
     [HttpGet("jobs")]
     public async Task<IActionResult> GetJobs([FromQuery] string? status, [FromQuery] string? category,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -79,7 +84,6 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<List<JobListingResponse>>.Ok(result));
     }
 
-    // GET /api/agent/marketplace-jobs
     [HttpGet("marketplace-jobs")]
     public async Task<IActionResult> ListMarketplaceJobs([FromQuery] string? category, [FromQuery] string? location,
         [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -88,7 +92,6 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<List<JobListingResponse>>.Ok(result));
     }
 
-    // POST /api/agent/jobs
     [HttpPost("jobs")]
     public async Task<IActionResult> CreateJob([FromBody] CreateJobListingRequest req)
     {
@@ -96,7 +99,6 @@ public class AgentController : ControllerBase
         return StatusCode(201, ApiResponse<JobListingResponse>.Ok(result));
     }
 
-    // GET /api/agent/jobs/:id
     [HttpGet("jobs/{id:guid}")]
     public async Task<IActionResult> GetJob(Guid id)
     {
@@ -104,7 +106,6 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<JobListingDetailResponse>.Ok(result));
     }
 
-    // PUT /api/agent/jobs/:id
     [HttpPut("jobs/{id:guid}")]
     public async Task<IActionResult> UpdateJob(Guid id, [FromBody] UpdateJobListingRequest req)
     {
@@ -112,15 +113,13 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<JobListingResponse>.Ok(result));
     }
 
-    // DELETE /api/agent/jobs/:id
     [HttpDelete("jobs/{id:guid}")]
     public async Task<IActionResult> DeleteJob(Guid id)
     {
         await _svc.DeleteJobAsync(UserId, id);
-        return Ok(ApiResponse.Ok("İlan silindi."));
+        return Ok(ApiResponse.Ok("Ilan silindi."));
     }
 
-    // GET /api/agent/jobs/:id/offers
     [HttpGet("jobs/{id:guid}/offers")]
     public async Task<IActionResult> GetJobOffers(Guid id)
     {
@@ -128,28 +127,56 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<List<OfferResponse>>.Ok(result));
     }
 
-    // POST /api/agent/jobs/:id/files
     [HttpPost("jobs/{id:guid}/files")]
-    [Consumes("multipart/form-data")]
-    public async Task<IActionResult> UploadJobFile(Guid id, IFormFile file)
+    public async Task<IActionResult> UploadJobFile(Guid id, IFormFile file, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
-            return BadRequest(ApiResponse.Fail("Dosya seçilmedi."));
+            return BadRequest(ApiResponse.Fail("Dosya secilmedi."));
 
-        // Local storage (geliştirme için); üretimde S3 entegrasyonu yapılacak
-        var uploads = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-        Directory.CreateDirectory(uploads);
-        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-        var filePath = Path.Combine(uploads, fileName);
-        await using var stream = System.IO.File.Create(filePath);
-        await file.CopyToAsync(stream);
+        var storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
+        {
+            File = file,
+            FileCategory = ResolveStorageCategory(file.FileName),
+            RelatedEntityType = StorageRelatedEntityType.JobListing,
+            RelatedEntityId = id
+        }, cancellationToken);
 
-        var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
-        var result = await _svc.UploadJobFileAsync(UserId, id, file.FileName, $"/uploads/{fileName}", file.Length, ext);
+        var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant();
+        var result = await _svc.UploadJobFileAsync(UserId, id, storedFile.OriginalFileName, storedFile.DownloadUrl, storedFile.Id, file.Length, ext);
         return StatusCode(201, ApiResponse<JobFileResponse>.Ok(result));
     }
 
-    // PUT /api/agent/offers/:offerId/accept
+    [HttpPost("jobs/{id:guid}/listing-image")]
+    public async Task<IActionResult> UploadJobListingImage(Guid id, IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse.Fail("Dosya secilmedi."));
+
+        var storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
+        {
+            File = file,
+            FileCategory = StorageFileCategory.Image,
+            RelatedEntityType = StorageRelatedEntityType.JobListing,
+            RelatedEntityId = id
+        }, cancellationToken);
+
+        var previousStorageFileId = await _svc.SetJobListingImageAsync(UserId, id, storedFile.Id);
+
+        if (previousStorageFileId.HasValue && previousStorageFileId.Value != storedFile.Id)
+        {
+            try
+            {
+                await _storageService.DeleteFileAsync(UserId, previousStorageFileId.Value, cancellationToken);
+            }
+            catch
+            {
+                // Listing image update already succeeded; old file cleanup is best-effort.
+            }
+        }
+
+        return Ok(ApiResponse<StorageFileResponse>.Ok(storedFile, "Ilan fotografi guncellendi."));
+    }
+
     [HttpPut("offers/{offerId:guid}/accept")]
     public async Task<IActionResult> AcceptOffer(Guid offerId)
     {
@@ -157,7 +184,6 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "Teklif kabul edildi."));
     }
 
-    // PUT /api/agent/offers/:offerId/reject
     [HttpPut("offers/{offerId:guid}/reject")]
     public async Task<IActionResult> RejectOffer(Guid offerId)
     {
@@ -165,7 +191,6 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse.Ok("Teklif reddedildi."));
     }
 
-    // GET /api/agent/assigned-jobs
     [HttpGet("assigned-jobs")]
     public async Task<IActionResult> GetAssignedJobs([FromQuery] string? status,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -174,7 +199,6 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<List<AssignedJobResponse>>.Ok(result));
     }
 
-    // GET /api/agent/assigned-jobs/:id
     [HttpGet("assigned-jobs/{id:guid}")]
     public async Task<IActionResult> GetAssignedJobDetail(Guid id)
     {
@@ -182,7 +206,6 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<AssignedJobDetailResponse>.Ok(result));
     }
 
-    // POST /api/agent/assigned-jobs/:id/logs
     [HttpPost("assigned-jobs/{id:guid}/logs")]
     public async Task<IActionResult> AddJobLog(Guid id, [FromBody] AddJobLogRequest req)
     {
@@ -211,23 +234,21 @@ public class AgentController : ControllerBase
     public async Task<IActionResult> RequestReport(Guid id)
     {
         await _svc.RequestReportAsync(UserId, id);
-        return Ok(ApiResponse.Ok("Rapor isteği gönderildi."));
+        return Ok(ApiResponse.Ok("Rapor istegi gonderildi."));
     }
 
-    // PUT /api/agent/assigned-jobs/:id  (complete)
     [HttpPut("assigned-jobs/{id:guid}")]
     public async Task<IActionResult> UpdateAssignedJob(Guid id, [FromBody] UpdateAssignedJobRequest req)
     {
-        // Eğer status = completed ise tamamlama akışını çalıştır
         if (req.Status == "completed")
         {
             var result = await _svc.CompleteJobAsync(UserId, id);
-            return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "İş tamamlandı."));
+            return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "Is tamamlandi."));
         }
-        return BadRequest(ApiResponse.Fail("Geçersiz işlem."));
+
+        return BadRequest(ApiResponse.Fail("Gecersiz islem."));
     }
 
-    // GET /api/agent/subcontractors
     [HttpGet("subcontractors")]
     public async Task<IActionResult> GetSubcontractors([FromQuery] string? search)
     {
@@ -260,7 +281,6 @@ public class AgentController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
     }
 
-    // GET /api/agent/offers
     [HttpGet("offers")]
     public async Task<IActionResult> GetAllOffers([FromQuery] AgentOffersQueryRequest request)
     {
@@ -268,11 +288,22 @@ public class AgentController : ControllerBase
         return Ok(ApiResponse<AgentOffersDashboardResponse>.Ok(result));
     }
 
-    // GET /api/agent/offers/:id
     [HttpGet("offers/{offerId:guid}")]
     public async Task<IActionResult> GetOfferDetail(Guid offerId)
     {
         var result = await _svc.GetOfferDetailAsync(UserId, offerId);
         return Ok(ApiResponse<AgentOfferDetailResponse>.Ok(result));
+    }
+
+    private static StorageFileCategory ResolveStorageCategory(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).TrimStart('.').ToLowerInvariant();
+
+        return extension switch
+        {
+            "jpg" or "jpeg" or "png" => StorageFileCategory.Image,
+            "mp4" or "mov" or "webm" => StorageFileCategory.Video,
+            _ => StorageFileCategory.Document
+        };
     }
 }

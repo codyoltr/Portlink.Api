@@ -31,7 +31,8 @@ public interface IAgentService
     Task<JobLogResponse> RejectJobLogAsync(Guid userId, Guid assignedJobId, Guid logId, ReviewJobLogRequest req);
     Task RequestReportAsync(Guid userId, Guid assignedJobId);
     Task<AssignedJobResponse> CompleteJobAsync(Guid userId, Guid assignedJobId);
-    Task<JobFileResponse> UploadJobFileAsync(Guid userId, Guid jobId, string fileName, string fileUrl, long? fileSize, string? fileType);
+    Task<JobFileResponse> UploadJobFileAsync(Guid userId, Guid jobId, string fileName, string fileUrl, Guid? storageFileId, long? fileSize, string? fileType);
+    Task<Guid?> SetJobListingImageAsync(Guid userId, Guid jobId, Guid storageFileId);
 
     Task<List<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse>> GetSubcontractorsAsync(string? search);
     Task<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse> GetSubcontractorByIdAsync(Guid userId, Guid subcontractorId);
