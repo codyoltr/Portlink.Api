@@ -5,6 +5,7 @@ using Portlink.Api.DTOs.Offers;
 using Portlink.Api.Entities;
 using Portlink.Api.Modules.Auth.Dtos;
 using Portlink.Api.Modules.Common.Dtos;
+using Portlink.Api.Modules.Storage.Interfaces;
 using Portlink.Api.Modules.Subcontractor.Interfaces;
 
 namespace Portlink.Api.Modules.Subcontractor;
@@ -12,8 +13,16 @@ namespace Portlink.Api.Modules.Subcontractor;
 public class SubcontractorService : ISubcontractorService
 {
     private readonly AppDbContext _db;
+    private readonly IS3StorageProvider _s3Provider;
 
-    public SubcontractorService(AppDbContext db) => _db = db;
+    public SubcontractorService(AppDbContext db, IS3StorageProvider s3Provider)
+    {
+        _db = db;
+        _s3Provider = s3Provider;
+    }
+
+    private string? RefreshLogoUrl(string s3Key)
+        => _s3Provider.GeneratePresignedViewUrl(s3Key, TimeSpan.FromDays(7));
 
     // ─── PROFILE ─────────────────────────────────────────────────────────────
 
@@ -23,6 +32,13 @@ public class SubcontractorService : ISubcontractorService
             .Include(s => s.User)
             .FirstOrDefaultAsync(s => s.UserId == userId)
             ?? throw new UnauthorizedAccessException("Taşeron profili bulunamadı.");
+
+        if (sub.LogoS3Key != null)
+        {
+            sub.LogoUrl = RefreshLogoUrl(sub.LogoS3Key);
+            await _db.SaveChangesAsync();
+        }
+
         return MapProfileResponse(sub);
     }
 
@@ -35,10 +51,19 @@ public class SubcontractorService : ISubcontractorService
 
         if (req.CompanyName != null) sub.CompanyName = req.CompanyName.Trim();
         if (req.FullName != null) sub.FullName = req.FullName.Trim();
+        if (req.CompanyType != null) sub.CompanyType = req.CompanyType.Trim();
+        if (req.FoundedYear != null) sub.FoundedYear = req.FoundedYear.Trim();
+        if (req.Experience != null) sub.Experience = req.Experience.Trim();
+        if (req.Bio != null) sub.Bio = req.Bio.Trim();
         if (req.Phone != null) sub.Phone = req.Phone.Trim();
         if (req.Country != null) sub.Country = req.Country.Trim();
         if (req.City != null) sub.City = req.City.Trim();
         if (req.ExpertiseTags != null) sub.ExpertiseTags = req.ExpertiseTags;
+        if (req.ServiceRegions != null) sub.ServiceRegions = req.ServiceRegions;
+        if (req.TeamStructure != null) sub.TeamStructure = req.TeamStructure.Select(t => new Portlink.Api.Entities.TeamMemberData { Title = t.Title, Count = t.Count, Icon = t.Icon }).ToList();
+        if (req.CompanyReferences != null) sub.CompanyReferences = req.CompanyReferences.Select(r => new Portlink.Api.Entities.CompanyReferenceData { Name = r.Name, Year = r.Year }).ToList();
+        if (sub.LogoS3Key != null)
+            sub.LogoUrl = RefreshLogoUrl(sub.LogoS3Key);
         sub.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
@@ -388,14 +413,21 @@ public class SubcontractorService : ISubcontractorService
 
     // ─── LOGO ─────────────────────────────────────────────────────────────────
 
-    public async Task<string> UploadLogoAsync(Guid userId, string logoUrl)
+    public async Task<string> UploadLogoAsync(Guid userId, Guid storageFileId)
     {
         var sub = await _db.SubcontractorProfiles.FirstOrDefaultAsync(s => s.UserId == userId)
             ?? throw new UnauthorizedAccessException("Taşeron profili bulunamadı.");
-        sub.LogoUrl = logoUrl;
+
+        var storageFile = await _db.StorageFiles.AsNoTracking()
+            .FirstOrDefaultAsync(f => f.Id == storageFileId && !f.IsDeleted)
+            ?? throw new KeyNotFoundException("Yüklenen dosya bulunamadı.");
+
+        var presignedUrl = RefreshLogoUrl(storageFile.S3Key)!;
+        sub.LogoS3Key = storageFile.S3Key;
+        sub.LogoUrl = presignedUrl;
         sub.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
-        return logoUrl;
+        return presignedUrl;
     }
 
     // ─── WALLET ───────────────────────────────────────────────────────────────
@@ -433,6 +465,10 @@ public class SubcontractorService : ISubcontractorService
         Id = sub.Id,
         FullName = sub.FullName,
         CompanyName = sub.CompanyName,
+        CompanyType = sub.CompanyType,
+        FoundedYear = sub.FoundedYear,
+        Experience = sub.Experience,
+        Bio = sub.Bio,
         Email = sub.User?.Email,
         Phone = sub.Phone,
         Country = sub.Country,
@@ -442,6 +478,9 @@ public class SubcontractorService : ISubcontractorService
         RatingCount = sub.RatingCount,
         TotalCompleted = sub.TotalCompleted,
         ExpertiseTags = sub.ExpertiseTags,
+        ServiceRegions = sub.ServiceRegions,
+        TeamStructure = sub.TeamStructure.Select(t => new TeamMemberResponse { Title = t.Title, Count = t.Count, Icon = t.Icon }).ToList(),
+        CompanyReferences = sub.CompanyReferences.Select(r => new CompanyReferenceResponse { Name = r.Name, Year = r.Year }).ToList(),
         IsVerified = sub.IsVerified
     };
 

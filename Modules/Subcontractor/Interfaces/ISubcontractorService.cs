@@ -22,7 +22,7 @@ public interface ISubcontractorService
     Task<JobLogResponse> UploadPhotoLogAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType, string? description);
     Task<AssignedJobResponse> SubmitJobForCompletionAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType, string? note);
     Task<JobReportResponse> UploadReportAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType);
-    Task<string> UploadLogoAsync(Guid userId, string logoUrl);
+    Task<string> UploadLogoAsync(Guid userId, Guid storageFileId);
     Task<WalletResponse> GetWalletAsync(Guid userId);
     Task<AgentProfileResponse> GetAgentPublicProfileAsync(Guid userId, Guid agentProfileId);
     Task RateAgentAsync(Guid userId, Guid agentProfileId, decimal rating);

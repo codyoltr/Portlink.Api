@@ -46,27 +46,31 @@ public class SubcontractorController : ControllerBase
 
     // POST /api/subcontractor/profile/logo
     [HttpPost("profile/logo")]
-    public async Task<IActionResult> UploadLogo(IFormFile file)
+    public async Task<IActionResult> UploadLogo(IFormFile file, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
             return BadRequest(ApiResponse.Fail("Dosya seçilmedi."));
         if (file.Length > 5 * 1024 * 1024)
             return BadRequest(ApiResponse.Fail("Dosya boyutu 5 MB'ı geçemez."));
 
-        var ext = Path.GetExtension(file.FileName).ToLower();
-        if (!new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(ext))
+        var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLower();
+        if (ext is not ("jpg" or "jpeg" or "png" or "webp"))
             return BadRequest(ApiResponse.Fail("Yalnızca JPG, PNG veya WebP yüklenebilir."));
 
-        var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "logos");
-        Directory.CreateDirectory(uploadsDir);
-        var fileName = $"{Guid.NewGuid()}{ext}";
-        var filePath = Path.Combine(uploadsDir, fileName);
-        await using var stream = System.IO.File.Create(filePath);
-        await file.CopyToAsync(stream);
+        try
+        {
+            var storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
+            {
+                File = file,
+                FileCategory = StorageFileCategory.Image,
+                RelatedEntityType = StorageRelatedEntityType.User,
+                RelatedEntityId = UserId
+            }, cancellationToken);
 
-        var logoUrl = $"/uploads/logos/{fileName}";
-        await _svc.UploadLogoAsync(UserId, logoUrl);
-        return Ok(ApiResponse<string>.Ok(logoUrl, "Logo başarıyla yüklendi."));
+            var result = await _svc.UploadLogoAsync(UserId, storedFile.Id);
+            return Ok(ApiResponse<string>.Ok(result, "Logo başarıyla yüklendi."));
+        }
+        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
     }
 
     // GET /api/subcontractor/dashboard/stats

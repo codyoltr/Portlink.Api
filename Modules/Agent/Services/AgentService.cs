@@ -7,17 +7,23 @@ using Portlink.Api.DTOs.Agents;
 using Portlink.Api.Modules.Auth.Dtos;
 using Portlink.Api.Modules.Auth.Entities;
 using Portlink.Api.Modules.Common.Dtos;
+using Portlink.Api.Modules.Storage.Interfaces;
 
 namespace Portlink.Api.Modules.Agent;
 
 public class AgentService : IAgentService
 {
     private readonly AppDbContext _db;
+    private readonly IS3StorageProvider _s3Provider;
 
-    public AgentService(AppDbContext db)
+    public AgentService(AppDbContext db, IS3StorageProvider s3Provider)
     {
         _db = db;
+        _s3Provider = s3Provider;
     }
+
+    private string? RefreshLogoUrl(string s3Key)
+        => _s3Provider.GeneratePresignedViewUrl(s3Key, TimeSpan.FromDays(7));
 
     // ─── PROFILE ─────────────────────────────────────────────────────────────
 
@@ -25,6 +31,13 @@ public class AgentService : IAgentService
     {
         var agent = await _db.AgentProfiles.Include(a => a.User).Include(a => a.Ports).FirstOrDefaultAsync(a => a.UserId == userId)
             ?? throw new UnauthorizedAccessException("Acente profili bulunamadı.");
+
+        if (agent.LogoS3Key != null)
+        {
+            agent.LogoUrl = RefreshLogoUrl(agent.LogoS3Key);
+            await _db.SaveChangesAsync();
+        }
+
         return new AgentProfileResponse
         {
             Id = agent.Id,
@@ -38,6 +51,7 @@ public class AgentService : IAgentService
             LogoUrl = agent.LogoUrl,
             Rating = agent.Rating,
             TotalJobs = agent.TotalJobs,
+            ServiceScopes = agent.ServiceScopes,
             IsVerified = agent.IsVerified,
             Ports = agent.Ports.Select(p => new PortResponse
             {
@@ -73,12 +87,17 @@ public class AgentService : IAgentService
             }
         }
 
+        if (req.ServiceScopes != null) agent.ServiceScopes = req.ServiceScopes;
+
         if (req.PortIds != null)
         {
             var ports = await _db.Ports.Where(p => req.PortIds.Contains(p.Id)).ToListAsync();
             agent.Ports.Clear();
             foreach (var p in ports) agent.Ports.Add(p);
         }
+
+        if (agent.LogoS3Key != null)
+            agent.LogoUrl = RefreshLogoUrl(agent.LogoS3Key);
 
         agent.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
@@ -96,6 +115,7 @@ public class AgentService : IAgentService
             LogoUrl = agent.LogoUrl,
             Rating = agent.Rating,
             TotalJobs = agent.TotalJobs,
+            ServiceScopes = agent.ServiceScopes,
             IsVerified = agent.IsVerified,
             Ports = agent.Ports.Select(p => new PortResponse
             {
@@ -108,14 +128,21 @@ public class AgentService : IAgentService
         };
     }
 
-    public async Task<string> UploadLogoAsync(Guid userId, string logoUrl)
+    public async Task<string> UploadLogoAsync(Guid userId, Guid storageFileId)
     {
         var agent = await _db.AgentProfiles.FirstOrDefaultAsync(a => a.UserId == userId)
             ?? throw new UnauthorizedAccessException("Acente profili bulunamadı.");
-        agent.LogoUrl = logoUrl;
+
+        var storageFile = await _db.StorageFiles.AsNoTracking()
+            .FirstOrDefaultAsync(f => f.Id == storageFileId && !f.IsDeleted)
+            ?? throw new KeyNotFoundException("Yüklenen dosya bulunamadı.");
+
+        var presignedUrl = RefreshLogoUrl(storageFile.S3Key)!;
+        agent.LogoS3Key = storageFile.S3Key;
+        agent.LogoUrl = presignedUrl;
         agent.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
-        return logoUrl;
+        return presignedUrl;
     }
 
     // ─── DASHBOARD ───────────────────────────────────────────────────────────

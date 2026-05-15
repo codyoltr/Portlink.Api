@@ -6,6 +6,7 @@ public interface IS3StorageProvider
     Task<StorageProviderDownloadResult> DownloadAsync(string key, CancellationToken cancellationToken = default);
     Task DeleteAsync(string key, CancellationToken cancellationToken = default);
     string GeneratePresignedDownloadUrl(string key, string downloadFileName, TimeSpan expiresIn);
+    string GeneratePresignedViewUrl(string key, TimeSpan expiresIn);
 }
 
 public sealed class StorageProviderDownloadResult

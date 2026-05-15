@@ -123,4 +123,22 @@ public class S3StorageProvider : IS3StorageProvider
             throw new InvalidOperationException("Gecici erisim baglantisi olusturulamadi.");
         }
     }
+
+    public string GeneratePresignedViewUrl(string key, TimeSpan expiresIn)
+    {
+        try
+        {
+            return _client.GetPreSignedURL(new GetPreSignedUrlRequest
+            {
+                BucketName = _settings.S3BucketName,
+                Key = key,
+                Expires = DateTime.UtcNow.Add(expiresIn)
+            });
+        }
+        catch (AmazonS3Exception ex)
+        {
+            _logger.LogError(ex, "Presigned view URL olusturma hatasi. Key: {Key}", key);
+            throw new InvalidOperationException("Gecici gorunum baglantisi olusturulamadi.");
+        }
+    }
 }

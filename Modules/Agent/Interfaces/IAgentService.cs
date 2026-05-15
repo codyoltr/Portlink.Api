@@ -9,7 +9,7 @@ public interface IAgentService
 {
     Task<AgentProfileResponse> GetProfileAsync(Guid userId);
     Task<AgentProfileResponse> UpdateProfileAsync(Guid userId, UpdateAgencyProfileRequest req);
-    Task<string> UploadLogoAsync(Guid userId, string logoUrl);
+    Task<string> UploadLogoAsync(Guid userId, Guid storageFileId);
     Task<AgentDashboardStatsResponse> GetDashboardStatsAsync(Guid userId);
     Task<List<JobListingResponse>> GetMyJobsAsync(Guid userId, string? status, string? category, int page, int pageSize);
     Task<List<JobListingResponse>> ListMarketplaceJobsAsync(string? category, string? location, string? search, int page, int pageSize);

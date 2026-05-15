@@ -52,6 +52,7 @@ public class AppDbContext : DbContext
 
             e.HasIndex(a => a.UserId).IsUnique();
             e.Property(a => a.Rating).HasPrecision(3, 2);
+            e.Property(a => a.ServiceScopes).HasColumnType("text[]");
         });
 
         // ── SubcontractorProfile ──────────────────────────────
@@ -68,6 +69,12 @@ public class AppDbContext : DbContext
             // PostgreSQL text[] için
             e.Property(s => s.ExpertiseTags)
              .HasColumnType("text[]");
+
+            e.Property(s => s.ServiceRegions)
+             .HasColumnType("text[]");
+
+            e.OwnsMany(s => s.TeamStructure, b => b.ToJson());
+            e.OwnsMany(s => s.CompanyReferences, b => b.ToJson());
         });
 
         // ── JobListing ────────────────────────────────────────

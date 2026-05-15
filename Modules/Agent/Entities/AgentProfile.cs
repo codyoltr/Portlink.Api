@@ -35,9 +35,14 @@ public class AgentProfile
     [MaxLength(500)]
     public string? LogoUrl { get; set; }
 
+    [MaxLength(500)]
+    public string? LogoS3Key { get; set; }
+
     public decimal Rating { get; set; } = 0.0m;
     public int RatingCount { get; set; } = 0;
     public int TotalJobs { get; set; } = 0;
+    public List<string> ServiceScopes { get; set; } = new();
+
     public bool IsVerified { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

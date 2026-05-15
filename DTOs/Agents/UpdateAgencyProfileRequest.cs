@@ -10,4 +10,5 @@ public class UpdateAgencyProfileRequest
     public string? Country { get; set; }
     public string? City { get; set; }
     public List<Guid>? PortIds { get; set; }
+    public List<string>? ServiceScopes { get; set; }
 }

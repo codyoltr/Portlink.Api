@@ -71,10 +71,24 @@ public class AgentProfileResponse
     public decimal Rating { get; set; }
     public int RatingCount { get; set; }
     public int TotalJobs { get; set; }
+    public List<string> ServiceScopes { get; set; } = new();
     public bool IsVerified { get; set; }
     public bool HasCurrentUserRated { get; set; }
     public Dictionary<int, int> RatingBreakdown { get; set; } = new();
     public List<PortResponse> Ports { get; set; } = new();
+}
+
+public class TeamMemberResponse
+{
+    public string Title { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public string Icon { get; set; } = string.Empty;
+}
+
+public class CompanyReferenceResponse
+{
+    public string Name { get; set; } = string.Empty;
+    public string Year { get; set; } = string.Empty;
 }
 
 public class SubcontractorProfileResponse
@@ -82,6 +96,10 @@ public class SubcontractorProfileResponse
     public Guid Id { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
+    public string? CompanyType { get; set; }
+    public string? FoundedYear { get; set; }
+    public string? Experience { get; set; }
+    public string? Bio { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? Country { get; set; }
@@ -91,6 +109,9 @@ public class SubcontractorProfileResponse
     public int RatingCount { get; set; }
     public int TotalCompleted { get; set; }
     public List<string> ExpertiseTags { get; set; } = new();
+    public List<string> ServiceRegions { get; set; } = new();
+    public List<TeamMemberResponse> TeamStructure { get; set; } = new();
+    public List<CompanyReferenceResponse> CompanyReferences { get; set; } = new();
     public bool IsVerified { get; set; }
     public bool HasCurrentUserRated { get; set; }
     public Dictionary<int, int> RatingBreakdown { get; set; } = new();
@@ -100,8 +121,15 @@ public class UpdateSubcontractorProfileRequest
 {
     public string? CompanyName { get; set; }
     public string? FullName { get; set; }
+    public string? CompanyType { get; set; }
+    public string? FoundedYear { get; set; }
+    public string? Experience { get; set; }
+    public string? Bio { get; set; }
     public string? Phone { get; set; }
     public string? Country { get; set; }
     public string? City { get; set; }
     public List<string>? ExpertiseTags { get; set; }
+    public List<string>? ServiceRegions { get; set; }
+    public List<TeamMemberResponse>? TeamStructure { get; set; }
+    public List<CompanyReferenceResponse>? CompanyReferences { get; set; }
 }

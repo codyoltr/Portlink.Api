@@ -2,6 +2,19 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Portlink.Api.Entities;
 
+public class TeamMemberData
+{
+    public string Title { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public string Icon { get; set; } = string.Empty;
+}
+
+public class CompanyReferenceData
+{
+    public string Name { get; set; } = string.Empty;
+    public string Year { get; set; } = string.Empty;
+}
+
 public class SubcontractorProfile
 {
     [Key]
@@ -28,8 +41,27 @@ public class SubcontractorProfile
     [MaxLength(50)]
     public string? TaxNumber { get; set; }
 
+    [MaxLength(100)]
+    public string? CompanyType { get; set; }
+
+    [MaxLength(10)]
+    public string? FoundedYear { get; set; }
+
+    [MaxLength(100)]
+    public string? Experience { get; set; }
+
+    [MaxLength(1000)]
+    public string? Bio { get; set; }
+
+    public List<string> ServiceRegions { get; set; } = new();
+    public List<TeamMemberData> TeamStructure { get; set; } = new();
+    public List<CompanyReferenceData> CompanyReferences { get; set; } = new();
+
     [MaxLength(500)]
     public string? LogoUrl { get; set; }
+
+    [MaxLength(500)]
+    public string? LogoS3Key { get; set; }
 
     public decimal Rating { get; set; } = 0.0m;
     public int RatingCount { get; set; } = 0;
