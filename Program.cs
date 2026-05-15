@@ -171,7 +171,13 @@ app.UseCors("Frontend");
 app.UseIpRateLimiting();
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
-app.UseStaticFiles();           // /uploads dizinine erişim
+app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
+    RequestPath = "/uploads"
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

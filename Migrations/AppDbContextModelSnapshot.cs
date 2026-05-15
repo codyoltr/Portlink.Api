@@ -651,6 +651,33 @@ namespace Portlink.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Portlink.Api.Entities.Rating", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("RateeProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RaterUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Score")
+                        .HasPrecision(3, 2)
+                        .HasColumnType("numeric(3,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RaterUserId", "RateeProfileId")
+                        .IsUnique();
+
+                    b.ToTable("Ratings");
+                });
+
             modelBuilder.Entity("Portlink.Api.Entities.ServiceCategory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -727,6 +754,9 @@ namespace Portlink.Api.Migrations
                     b.Property<decimal>("Rating")
                         .HasPrecision(3, 2)
                         .HasColumnType("numeric(3,2)");
+
+                    b.Property<int>("RatingCount")
+                        .HasColumnType("integer");
 
                     b.Property<string>("TaxNumber")
                         .HasMaxLength(50)
@@ -881,6 +911,9 @@ namespace Portlink.Api.Migrations
                     b.Property<decimal>("Rating")
                         .HasPrecision(3, 2)
                         .HasColumnType("numeric(3,2)");
+
+                    b.Property<int>("RatingCount")
+                        .HasColumnType("integer");
 
                     b.Property<string>("TaxNumber")
                         .HasMaxLength(50)
@@ -1293,6 +1326,17 @@ namespace Portlink.Api.Migrations
                     b.Navigation("JobListing");
 
                     b.Navigation("Subcontractor");
+                });
+
+            modelBuilder.Entity("Portlink.Api.Entities.Rating", b =>
+                {
+                    b.HasOne("Portlink.Api.Entities.User", "RaterUser")
+                        .WithMany()
+                        .HasForeignKey("RaterUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RaterUser");
                 });
 
             modelBuilder.Entity("Portlink.Api.Entities.SubcontractorProfile", b =>

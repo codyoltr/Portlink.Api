@@ -9,6 +9,7 @@ public interface IAgentService
 {
     Task<AgentProfileResponse> GetProfileAsync(Guid userId);
     Task<AgentProfileResponse> UpdateProfileAsync(Guid userId, UpdateAgencyProfileRequest req);
+    Task<string> UploadLogoAsync(Guid userId, string logoUrl);
     Task<AgentDashboardStatsResponse> GetDashboardStatsAsync(Guid userId);
     Task<List<JobListingResponse>> GetMyJobsAsync(Guid userId, string? status, string? category, int page, int pageSize);
     Task<List<JobListingResponse>> ListMarketplaceJobsAsync(string? category, string? location, string? search, int page, int pageSize);
@@ -32,5 +33,6 @@ public interface IAgentService
     Task<Guid?> SetJobListingImageAsync(Guid userId, Guid jobId, Guid storageFileId);
 
     Task<List<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse>> GetSubcontractorsAsync(string? search);
+    Task<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse> GetSubcontractorByIdAsync(Guid userId, Guid subcontractorId);
     Task RateSubcontractorAsync(Guid userId, Guid subcontractorId, decimal rating);
 }

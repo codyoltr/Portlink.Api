@@ -55,10 +55,13 @@ public class AgentService : IAgentService
         var agent = await _db.AgentProfiles.Include(a => a.User).Include(a => a.Ports).FirstOrDefaultAsync(a => a.UserId == userId)
             ?? throw new UnauthorizedAccessException("Acente profili bulunamadı.");
 
+        if (req.FullName != null) agent.FullName = req.FullName.Trim();
         if (req.CompanyName != null) agent.CompanyName = req.CompanyName.Trim();
         if (req.Phone != null) agent.Phone = req.Phone.Trim();
         if (req.Bio != null) agent.Bio = req.Bio.Trim();
-        
+        if (req.Country != null) agent.Country = req.Country.Trim();
+        if (req.City != null) agent.City = req.City.Trim();
+
         if (req.Email != null && agent.User != null)
         {
             var email = req.Email.Trim();
@@ -103,6 +106,16 @@ public class AgentService : IAgentService
                 Coordinates = p.Coordinates
             }).ToList()
         };
+    }
+
+    public async Task<string> UploadLogoAsync(Guid userId, string logoUrl)
+    {
+        var agent = await _db.AgentProfiles.FirstOrDefaultAsync(a => a.UserId == userId)
+            ?? throw new UnauthorizedAccessException("Acente profili bulunamadı.");
+        agent.LogoUrl = logoUrl;
+        agent.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return logoUrl;
     }
 
     // ─── DASHBOARD ───────────────────────────────────────────────────────────
@@ -655,13 +668,60 @@ public class AgentService : IAgentService
         }).ToListAsync();
     }
 
+    public async Task<Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse> GetSubcontractorByIdAsync(Guid userId, Guid subcontractorId)
+    {
+        var s = await _db.SubcontractorProfiles
+            .Include(sp => sp.User)
+            .FirstOrDefaultAsync(sp => sp.Id == subcontractorId)
+            ?? throw new KeyNotFoundException("Taşeron bulunamadı.");
+
+        var hasRated = await _db.Ratings
+            .AnyAsync(r => r.RaterUserId == userId && r.RateeProfileId == subcontractorId);
+
+        var breakdownRaw = await _db.Ratings
+            .Where(r => r.RateeProfileId == subcontractorId)
+            .GroupBy(r => (int)Math.Round((double)r.Score))
+            .Select(g => new { Star = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        var breakdown = new Dictionary<int, int> { {1,0},{2,0},{3,0},{4,0},{5,0} };
+        foreach (var b in breakdownRaw)
+            if (b.Star >= 1 && b.Star <= 5) breakdown[b.Star] = b.Count;
+
+        return new Portlink.Api.Modules.Auth.Dtos.SubcontractorProfileResponse
+        {
+            Id = s.Id, FullName = s.FullName, CompanyName = s.CompanyName,
+            Email = s.User?.Email, Phone = s.Phone, Country = s.Country, City = s.City,
+            LogoUrl = s.LogoUrl, Rating = s.Rating, RatingCount = s.RatingCount,
+            TotalCompleted = s.TotalCompleted,
+            ExpertiseTags = s.ExpertiseTags != null ? s.ExpertiseTags.ToList() : new List<string>(),
+            IsVerified = s.IsVerified,
+            HasCurrentUserRated = hasRated,
+            RatingBreakdown = breakdown
+        };
+    }
+
     public async Task RateSubcontractorAsync(Guid userId, Guid subcontractorId, decimal rating)
     {
-        var agent = await GetAgentProfileAsync(userId);
+        await GetAgentProfileAsync(userId);
         var sub = await _db.SubcontractorProfiles.FirstOrDefaultAsync(s => s.Id == subcontractorId)
             ?? throw new KeyNotFoundException("Taşeron bulunamadı.");
-        // Basit bir rating güncellemesi (gerçek bir sistemde rating tablosu olur)
-        sub.Rating = (sub.Rating * sub.TotalCompleted + rating) / (sub.TotalCompleted == 0 ? 1 : sub.TotalCompleted + 1);
+
+        var alreadyRated = await _db.Ratings
+            .AnyAsync(r => r.RaterUserId == userId && r.RateeProfileId == subcontractorId);
+        if (alreadyRated)
+            throw new InvalidOperationException("Bu taşeronu daha önce puanladınız.");
+
+        sub.Rating = (sub.Rating * sub.RatingCount + rating) / (sub.RatingCount + 1);
+        sub.RatingCount++;
+
+        _db.Ratings.Add(new Portlink.Api.Entities.Rating
+        {
+            RaterUserId = userId,
+            RateeProfileId = subcontractorId,
+            Score = rating
+        });
+
         await _db.SaveChangesAsync();
     }
 

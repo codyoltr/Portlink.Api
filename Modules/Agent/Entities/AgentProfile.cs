@@ -36,6 +36,7 @@ public class AgentProfile
     public string? LogoUrl { get; set; }
 
     public decimal Rating { get; set; } = 0.0m;
+    public int RatingCount { get; set; } = 0;
     public int TotalJobs { get; set; } = 0;
     public bool IsVerified { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
