@@ -113,6 +113,8 @@ public class AssignedJobResponse
     public Guid Id { get; set; }
     public Guid JobId { get; set; }
     public string JobTitle { get; set; } = string.Empty;
+    public Guid? ListingImageStorageFileId { get; set; }
+    public string? ListingImagePreviewUrl { get; set; }
     public Guid AgentUserId { get; set; }
     public Guid AgentProfileId { get; set; }
     public Guid SubcontractorUserId { get; set; }

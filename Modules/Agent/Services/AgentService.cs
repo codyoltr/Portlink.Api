@@ -534,6 +534,10 @@ public class AgentService : IAgentService
             Id = a.Id,
             JobId = a.JobId,
             JobTitle = a.JobListing.Title,
+            ListingImageStorageFileId = a.JobListing.ListingImageStorageFileId,
+            ListingImagePreviewUrl = a.JobListing.ListingImageStorageFileId.HasValue
+                ? $"/api/storage/{a.JobListing.ListingImageStorageFileId.Value}/preview"
+                : null,
             AgentUserId = a.Agent.UserId,
             AgentProfileId = a.AgentId,
             AgentLogoUrl = a.Agent.LogoUrl,
@@ -876,6 +880,10 @@ public class AgentService : IAgentService
         Id = a.Id,
         JobId = a.JobId,
         JobTitle = a.JobListing?.Title ?? string.Empty,
+        ListingImageStorageFileId = a.JobListing?.ListingImageStorageFileId,
+        ListingImagePreviewUrl = a.JobListing?.ListingImageStorageFileId.HasValue == true
+            ? $"/api/storage/{a.JobListing.ListingImageStorageFileId.Value}/preview"
+            : null,
         AgentUserId = a.Agent?.UserId ?? Guid.Empty,
         AgentProfileId = a.AgentId,
         AgentLogoUrl = a.Agent?.LogoUrl,
