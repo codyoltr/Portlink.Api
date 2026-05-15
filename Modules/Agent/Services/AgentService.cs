@@ -127,8 +127,8 @@ public class AgentService : IAgentService
         {
             ActiveListings = await _db.JobListings.CountAsync(j => j.AgentId == agent.Id && j.Status == "active"),
             TotalOffers = await _db.Offers.CountAsync(o => o.JobListing.AgentId == agent.Id && o.Status == "pending"),
-            ActiveJobs = await _db.AssignedJobs.CountAsync(a => a.AgentId == agent.Id && a.Status != "completed"),
-            CompletedJobs = await _db.AssignedJobs.CountAsync(a => a.AgentId == agent.Id && a.Status == "completed")
+            ActiveJobs = await _db.AssignedJobs.CountAsync(a => a.AgentId == agent.Id && a.Status != nameof(AssignedJobStatus.Completed) && a.Status != "completed"),
+            CompletedJobs = await _db.AssignedJobs.CountAsync(a => a.AgentId == agent.Id && (a.Status == nameof(AssignedJobStatus.Completed) || a.Status == "completed"))
         };
     }
 
@@ -461,8 +461,8 @@ public class AgentService : IAgentService
             OfferId = offer.Id,
             AgentId = agent.Id,
             SubcontractorId = offer.SubcontractorId,
-            Status = "started",
-            Progress = 25,
+            Status = AssignedJobStatus.Assigned.ToString(),
+            Progress = 0,
             StartDate = startDate,
             DueDate = dueDate
         };
@@ -470,12 +470,12 @@ public class AgentService : IAgentService
         await _db.SaveChangesAsync();
         await tx.CommitAsync();
 
-        _db.JobLogs.Add(new JobLog
+        _db.JobWorkflowLogs.Add(new JobWorkflowLog
         {
             AssignedJobId = assigned.Id,
             CreatedBy = userId,
-            Title = "Başladı",
-            Description = "Teklif kabul edildi, iş başlangıç aşamasına alındı.",
+            Title = "Teklif kabul edildi",
+            Description = "Acente teklifi kabul etti. İşin başlaması için taşeron başlangıç fotoğrafı göndermeli.",
             Type = "status",
             ReviewStatus = "none"
         });
@@ -516,7 +516,11 @@ public class AgentService : IAgentService
         var agent = await GetAgentProfileAsync(userId);
         var query = _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor).Include(a => a.Offer)
             .Where(a => a.AgentId == agent.Id);
-        if (!string.IsNullOrWhiteSpace(status)) query = query.Where(a => a.Status == status);
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            var normalizedStatus = NormalizeAssignedJobStatus(status);
+            query = query.Where(a => a.Status == normalizedStatus);
+        }
         var list = await query.OrderByDescending(a => a.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         return list.Select(MapAssignedJob).ToList();
     }
@@ -526,7 +530,7 @@ public class AgentService : IAgentService
         var agent = await GetAgentProfileAsync(userId);
         var a = await _db.AssignedJobs
             .Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer)
-            .Include(x => x.JobLogs).Include(x => x.JobReports)
+            .Include(x => x.JobWorkflowLogs).Include(x => x.JobReports)
             .FirstOrDefaultAsync(x => x.Id == id && x.AgentId == agent.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
         return new AssignedJobDetailResponse
@@ -553,7 +557,7 @@ public class AgentService : IAgentService
             CreatedAt = a.CreatedAt,
             OfferPrice = a.Offer?.Price ?? 0,
             OfferCurrency = a.Offer?.Currency ?? "TRY",
-            Logs = a.JobLogs.OrderByDescending(l => l.CreatedAt).Select(MapJobLog).ToList(),
+            Logs = a.JobWorkflowLogs.OrderByDescending(l => l.CreatedAt).Select(MapWorkflowLog).ToList(),
             Reports = a.JobReports.OrderByDescending(r => r.CreatedAt).Select(r => new JobReportResponse { Id = r.Id, FileName = r.FileName, FileUrl = r.FileUrl, FileSize = r.FileSize, FileType = r.FileType, CreatedAt = r.CreatedAt }).ToList()
         };
     }
@@ -572,26 +576,37 @@ public class AgentService : IAgentService
     public async Task<JobLogResponse> ApproveJobLogAsync(Guid userId, Guid assignedJobId, Guid logId, ReviewJobLogRequest req)
     {
         var agent = await GetAgentProfileAsync(userId);
-        var assigned = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Subcontractor)
+        var assigned = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Subcontractor).Include(a => a.Offer)
             .FirstOrDefaultAsync(a => a.Id == assignedJobId && a.AgentId == agent.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
 
-        var log = await _db.JobLogs.FirstOrDefaultAsync(l => l.Id == logId && l.AssignedJobId == assigned.Id)
+        var log = await _db.JobWorkflowLogs.FirstOrDefaultAsync(l => l.Id == logId && l.AssignedJobId == assigned.Id)
             ?? throw new KeyNotFoundException("Süreç logu bulunamadı.");
         if (log.ReviewStatus != "pending")
             throw new InvalidOperationException("Yalnızca onay bekleyen loglar onaylanabilir.");
 
-        var completesJob = log.Type == "completion_request";
+        var completesJob = log.Type == "finish_proof";
+        var approvesStart = log.Type == "start_proof";
 
         log.ReviewStatus = "approved";
         log.ReviewedBy = userId;
         log.ReviewedAt = DateTime.UtcNow;
         log.ReviewNote = req.Note?.Trim();
 
-        if (assigned.Status != "completed" && !completesJob)
+        if (assigned.Status != AssignedJobStatus.Completed.ToString() && approvesStart)
         {
-            assigned.Status = "in_progress";
-            assigned.Progress = Math.Max(assigned.Progress, 60);
+            assigned.Status = AssignedJobStatus.Started.ToString();
+            assigned.Progress = 25;
+            assigned.StartDate ??= DateOnly.FromDateTime(DateTime.UtcNow);
+            if (!assigned.DueDate.HasValue && assigned.Offer?.EstimatedDays is int estimatedDays)
+                assigned.DueDate = assigned.StartDate.Value.AddDays(estimatedDays);
+            assigned.UpdatedAt = DateTime.UtcNow;
+            _db.JobWorkflowLogs.Add(new JobWorkflowLog { AssignedJobId = assigned.Id, CreatedBy = userId, Type = "status", Title = "Başlangıç fotoğrafı onaylandı", ReviewStatus = "none" });
+        }
+        else if (assigned.Status != AssignedJobStatus.Completed.ToString() && !completesJob)
+        {
+            assigned.Status = AssignedJobStatus.InProgress.ToString();
+            assigned.Progress = 50;
             assigned.UpdatedAt = DateTime.UtcNow;
         }
 
@@ -608,7 +623,7 @@ public class AgentService : IAgentService
         if (completesJob)
             await CompleteJobAsync(userId, assignedJobId);
 
-        return MapJobLog(log);
+        return MapWorkflowLog(log);
     }
 
     public async Task<JobLogResponse> RejectJobLogAsync(Guid userId, Guid assignedJobId, Guid logId, ReviewJobLogRequest req)
@@ -618,7 +633,7 @@ public class AgentService : IAgentService
             .FirstOrDefaultAsync(a => a.Id == assignedJobId && a.AgentId == agent.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
 
-        var log = await _db.JobLogs.FirstOrDefaultAsync(l => l.Id == logId && l.AssignedJobId == assigned.Id)
+        var log = await _db.JobWorkflowLogs.FirstOrDefaultAsync(l => l.Id == logId && l.AssignedJobId == assigned.Id)
             ?? throw new KeyNotFoundException("Süreç logu bulunamadı.");
         if (log.ReviewStatus != "pending")
             throw new InvalidOperationException("Yalnızca onay bekleyen loglar reddedilebilir.");
@@ -628,10 +643,20 @@ public class AgentService : IAgentService
         log.ReviewedAt = DateTime.UtcNow;
         log.ReviewNote = req.Note?.Trim();
 
-        if (assigned.Status == "review")
+        if (log.Type == "start_proof")
         {
-            assigned.Status = assigned.Progress >= 60 ? "in_progress" : "started";
+            assigned.Status = AssignedJobStatus.Assigned.ToString();
+            assigned.Progress = 0;
             assigned.UpdatedAt = DateTime.UtcNow;
+            _db.JobWorkflowLogs.Add(new JobWorkflowLog { AssignedJobId = assigned.Id, CreatedBy = userId, Type = "status", Title = "Başlangıç fotoğrafı reddedildi", Description = req.Note?.Trim(), ReviewStatus = "none" });
+        }
+        else if (log.Type == "finish_proof")
+        {
+            var hasProgressNote = await _db.JobWorkflowLogs.AnyAsync(l => l.AssignedJobId == assigned.Id && l.Type == "progress_note");
+            assigned.Status = hasProgressNote ? AssignedJobStatus.InProgress.ToString() : AssignedJobStatus.Started.ToString();
+            assigned.Progress = hasProgressNote ? 50 : 25;
+            assigned.UpdatedAt = DateTime.UtcNow;
+            _db.JobWorkflowLogs.Add(new JobWorkflowLog { AssignedJobId = assigned.Id, CreatedBy = userId, Type = "status", Title = "Bitiş fotoğrafı reddedildi", Description = req.Note?.Trim(), ReviewStatus = "none" });
         }
 
         _db.Notifications.Add(new Notification
@@ -644,7 +669,7 @@ public class AgentService : IAgentService
         });
 
         await _db.SaveChangesAsync();
-        return MapJobLog(log);
+        return MapWorkflowLog(log);
     }
 
     public async Task RequestReportAsync(Guid userId, Guid assignedJobId)
@@ -667,12 +692,14 @@ public class AgentService : IAgentService
     public async Task<AssignedJobResponse> CompleteJobAsync(Guid userId, Guid assignedJobId)
     {
         var agent = await GetAgentProfileAsync(userId);
-        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer)
+        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer).Include(x => x.JobWorkflowLogs)
             .FirstOrDefaultAsync(x => x.Id == assignedJobId && x.AgentId == agent.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
-        if (a.Status == "completed") throw new InvalidOperationException("İş zaten tamamlandı.");
+        if (a.Status == AssignedJobStatus.Completed.ToString()) throw new InvalidOperationException("İş zaten tamamlandı.");
+        if (!a.JobWorkflowLogs.Any(l => l.Type == "finish_proof" && l.ReviewStatus == "approved"))
+            throw new InvalidOperationException("İşi tamamlamak için önce bitiş fotoğrafı onaylanmalıdır.");
         await using var tx = await _db.Database.BeginTransactionAsync();
-        a.Status = "completed"; a.Progress = 100; a.CompletedAt = DateTime.UtcNow; a.UpdatedAt = DateTime.UtcNow;
+        a.Status = AssignedJobStatus.Completed.ToString(); a.Progress = 100; a.CompletedAt = DateTime.UtcNow; a.UpdatedAt = DateTime.UtcNow;
         a.JobListing.Status = "completed"; a.JobListing.UpdatedAt = DateTime.UtcNow;
         a.Subcontractor.TotalCompleted++;
         if (a.Offer != null)
@@ -688,7 +715,8 @@ public class AgentService : IAgentService
                 Description = $"Hakediş: {a.JobListing.Title}"
             });
         }
-        _db.JobLogs.Add(new JobLog { AssignedJobId = a.Id, CreatedBy = userId, Type = "status", Title = "Bitti", Description = "Acente onayladı.", ReviewStatus = "none" });
+        _db.JobWorkflowLogs.Add(new JobWorkflowLog { AssignedJobId = a.Id, CreatedBy = userId, Type = "status", Title = "Bitiş fotoğrafı onaylandı", Description = "Acente onayladı.", ReviewStatus = "none" });
+        _db.JobWorkflowLogs.Add(new JobWorkflowLog { AssignedJobId = a.Id, CreatedBy = userId, Type = "status", Title = "İş tamamlandı", ReviewStatus = "none" });
         await _db.SaveChangesAsync();
         await tx.CommitAsync();
         var subUserId = await _db.SubcontractorProfiles.Where(s => s.Id == a.SubcontractorId).Select(s => s.UserId).FirstAsync();
@@ -901,14 +929,14 @@ public class AgentService : IAgentService
         OfferCurrency = a.Offer?.Currency ?? "TRY"
     };
 
-    private static DateOnly EffectiveStartDate(AssignedJob a)
+    private static DateOnly? EffectiveStartDate(AssignedJob a)
         => a.StartDate ?? DateOnly.FromDateTime(a.CreatedAt);
 
     private static DateOnly? EffectiveDueDate(AssignedJob a)
     {
         if (a.DueDate.HasValue) return a.DueDate;
         if (a.Offer?.EstimatedDays is not int estimatedDays) return null;
-        return EffectiveStartDate(a).AddDays(estimatedDays);
+        return EffectiveStartDate(a)?.AddDays(estimatedDays);
     }
 
     private static JobLogResponse MapJobLog(JobLog l) => new()
@@ -928,4 +956,40 @@ public class AgentService : IAgentService
         ReviewNote = l.ReviewNote,
         CreatedAt = l.CreatedAt
     };
+
+    private static JobLogResponse MapWorkflowLog(JobWorkflowLog l) => new()
+    {
+        Id = l.Id,
+        Title = l.Title,
+        Description = l.Description,
+        Type = l.Type,
+        FileUrl = l.FileUrl,
+        FileName = l.FileName,
+        FileType = l.FileType,
+        FileSize = l.FileSize,
+        ReviewStatus = l.ReviewStatus,
+        CreatedBy = l.CreatedBy,
+        ReviewedBy = l.ReviewedBy,
+        ReviewedAt = l.ReviewedAt,
+        ReviewNote = l.ReviewNote,
+        CreatedAt = l.CreatedAt
+    };
+
+    private static string NormalizeAssignedJobStatus(string status)
+    {
+        var normalized = status.Trim();
+        if (Enum.TryParse<AssignedJobStatus>(normalized, ignoreCase: true, out var parsed))
+            return parsed.ToString();
+
+        return normalized.ToLowerInvariant() switch
+        {
+            "accepted" or "assigned" => AssignedJobStatus.Assigned.ToString(),
+            "start_proof_pending" or "startproofpending" => AssignedJobStatus.StartProofPending.ToString(),
+            "started" => AssignedJobStatus.Started.ToString(),
+            "in_progress" or "inprogress" => AssignedJobStatus.InProgress.ToString(),
+            "review" or "finish_proof_pending" or "finishproofpending" => AssignedJobStatus.FinishProofPending.ToString(),
+            "completed" => AssignedJobStatus.Completed.ToString(),
+            _ => normalized
+        };
+    }
 }

@@ -26,6 +26,7 @@ public class FileValidationService : IFileValidationService
             ["jpg"] = new[] { "image/jpeg" },
             ["jpeg"] = new[] { "image/jpeg" },
             ["png"] = new[] { "image/png" },
+            ["webp"] = new[] { "image/webp" },
             ["mp4"] = new[] { "video/mp4" },
             ["mov"] = new[] { "video/quicktime" },
             ["webm"] = new[] { "video/webm" }
@@ -141,7 +142,7 @@ public class FileValidationService : IFileValidationService
     {
         return extension switch
         {
-            "jpg" or "jpeg" or "png" => StorageFileCategory.Image,
+            "jpg" or "jpeg" or "png" or "webp" => StorageFileCategory.Image,
             "mp4" or "mov" or "webm" => StorageFileCategory.Video,
             _ => StorageFileCategory.Document
         };
@@ -211,6 +212,9 @@ public class FileValidationService : IFileValidationService
             case "jpeg":
                 EnsureStartsWith(content, new byte[] { 0xFF, 0xD8, 0xFF }, "JPEG imzasi gecersiz.");
                 break;
+            case "webp":
+                EnsureWebp(content);
+                break;
             case "docx":
                 EnsureValidDocx(content);
                 break;
@@ -235,6 +239,30 @@ public class FileValidationService : IFileValidationService
         if (read != expected.Length || !buffer.SequenceEqual(expected))
         {
             throw new InvalidOperationException(message);
+        }
+    }
+
+    private static void EnsureWebp(Stream content)
+    {
+        if (content.Length < 12)
+        {
+            throw new InvalidOperationException("WEBP imzasi gecersiz.");
+        }
+
+        var buffer = new byte[12];
+        content.Position = 0;
+        var read = content.Read(buffer, 0, buffer.Length);
+        if (read != buffer.Length ||
+            buffer[0] != (byte)'R' ||
+            buffer[1] != (byte)'I' ||
+            buffer[2] != (byte)'F' ||
+            buffer[3] != (byte)'F' ||
+            buffer[8] != (byte)'W' ||
+            buffer[9] != (byte)'E' ||
+            buffer[10] != (byte)'B' ||
+            buffer[11] != (byte)'P')
+        {
+            throw new InvalidOperationException("WEBP imzasi gecersiz.");
         }
     }
 

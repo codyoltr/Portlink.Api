@@ -44,7 +44,7 @@ public class AgentController : ControllerBase
 
     // POST /api/agent/profile/logo
     [HttpPost("profile/logo")]
-    public async Task<IActionResult> UploadLogo(IFormFile file)
+    public async Task<IActionResult> UploadLogo(IFormFile file, CancellationToken cancellationToken)
     {
         if (file == null || file.Length == 0)
             return BadRequest(ApiResponse.Fail("Dosya seçilmedi."));
@@ -56,14 +56,17 @@ public class AgentController : ControllerBase
         if (ext is not ("jpg" or "jpeg" or "png" or "webp"))
             return BadRequest(ApiResponse.Fail("Yalnızca JPG, PNG veya WebP dosyaları kabul edilir."));
 
-        var logosDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "logos");
-        Directory.CreateDirectory(logosDir);
-        var fileName = $"{Guid.NewGuid()}.{ext}";
-        var filePath = Path.Combine(logosDir, fileName);
-        await using var stream = System.IO.File.Create(filePath);
-        await file.CopyToAsync(stream);
+        var profile = await _svc.GetProfileAsync(UserId);
+        var storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
+        {
+            File = file,
+            FileCategory = StorageFileCategory.Image,
+            RelatedEntityType = StorageRelatedEntityType.AgentProfile,
+            RelatedEntityId = profile.Id,
+            Description = "Acente profil logosu"
+        }, cancellationToken);
 
-        var logoUrl = $"/uploads/logos/{fileName}";
+        var logoUrl = storedFile.PreviewUrl;
         var result = await _svc.UploadLogoAsync(UserId, logoUrl);
         return Ok(ApiResponse<string>.Ok(result, "Logo güncellendi."));
     }

@@ -56,10 +56,85 @@ public class SubcontractorService : ISubcontractorService
         {
             ActiveBids = await _db.Offers.CountAsync(o => o.SubcontractorId == sub.Id && o.Status == "pending"),
             AcceptedBids = await _db.Offers.CountAsync(o => o.SubcontractorId == sub.Id && o.Status == "accepted"),
-            ActiveJobs = await _db.AssignedJobs.CountAsync(a => a.SubcontractorId == sub.Id && a.Status != "completed"),
-            CompletedJobs = await _db.AssignedJobs.CountAsync(a => a.SubcontractorId == sub.Id && a.Status == "completed"),
+            ActiveJobs = await _db.AssignedJobs.CountAsync(a => a.SubcontractorId == sub.Id && a.Status != nameof(AssignedJobStatus.Completed) && a.Status != "completed"),
+            CompletedJobs = await _db.AssignedJobs.CountAsync(a => a.SubcontractorId == sub.Id && (a.Status == nameof(AssignedJobStatus.Completed) || a.Status == "completed")),
             TotalEarnings = totalEarnings,
             PendingEarnings = pendingEarnings
+        };
+    }
+
+    public async Task<SubcontractorDashboardSummaryResponse> GetDashboardSummaryAsync(Guid userId)
+    {
+        var sub = await GetProfileAsync(userId);
+        var now = DateTime.UtcNow;
+        var last30Days = now.AddDays(-30);
+        var monthStart = new DateTime(now.Year, now.Month, 1);
+
+        var offers = await _db.Offers
+            .AsNoTracking()
+            .Include(o => o.JobListing)
+            .Where(o => o.SubcontractorId == sub.Id)
+            .ToListAsync();
+
+        var assignedJobs = await _db.AssignedJobs
+            .AsNoTracking()
+            .Include(a => a.JobListing)
+            .Include(a => a.Offer)
+            .Include(a => a.JobWorkflowLogs)
+            .Where(a => a.SubcontractorId == sub.Id)
+            .ToListAsync();
+
+        var walletTransactions = await _db.WalletTransactions
+            .AsNoTracking()
+            .Where(w => w.SubcontractorId == sub.Id)
+            .ToListAsync();
+
+        var recentOffers = offers.Where(o => o.CreatedAt >= last30Days).ToList();
+        var recentAssignedJobs = assignedJobs.Where(a => a.CreatedAt >= last30Days || (a.CompletedAt.HasValue && a.CompletedAt.Value >= last30Days)).ToList();
+        var accepted = recentOffers.Count(o => o.Status == "accepted");
+        var pending = recentOffers.Count(o => o.Status == "pending");
+        var completedRecentJobs = recentAssignedJobs.Count(IsCompletedJob);
+        var strongestCategory = ResolveStrongestCategory(offers, assignedJobs);
+
+        var offeredJobIds = offers.Select(o => o.JobId).ToList();
+        var activeListings = await _db.JobListings
+            .AsNoTracking()
+            .Where(j => j.Status == "active" && !offeredJobIds.Contains(j.Id))
+            .OrderByDescending(j => j.CreatedAt)
+            .Take(50)
+            .ToListAsync();
+
+        return new SubcontractorDashboardSummaryResponse
+        {
+            TotalOffers = offers.Count,
+            PendingOffers = offers.Count(o => o.Status == "pending"),
+            ActiveJobs = assignedJobs.Count(a => !IsCompletedJob(a)),
+            MonthlyEarnings = walletTransactions
+                .Where(w => w.Type == "earning" && w.Status == "completed" && w.CreatedAt >= monthStart)
+                .Sum(w => w.Amount),
+            TotalReceivable = walletTransactions
+                .Where(w => w.Type == "earning" && (w.Status == "completed" || w.Status == "pending"))
+                .Sum(w => w.Amount),
+            AvailableBalance = walletTransactions
+                .Where(w => w.Type == "earning" && w.Status == "completed")
+                .Sum(w => w.Amount),
+            PendingEarnings = walletTransactions
+                .Where(w => w.Type == "earning" && w.Status == "pending")
+                .Sum(w => w.Amount),
+            TodayTasks = BuildDashboardTasks(assignedJobs, offers),
+            OfferPerformance = new SubcontractorOfferPerformanceResponse
+            {
+                Sent = recentOffers.Count,
+                Accepted = accepted,
+                Rejected = recentOffers.Count(o => o.Status == "rejected"),
+                AcceptanceRate = Percentage(accepted, recentOffers.Count),
+                PendingRate = Percentage(pending, recentOffers.Count),
+                CompletedJobsRate = Percentage(completedRecentJobs, recentAssignedJobs.Count)
+            },
+            StrongestCategory = strongestCategory,
+            // Explicit offer response timestamps do not exist yet; UpdatedAt is the best available status-change signal.
+            AverageResponseTimeText = ResolveAverageResponseTimeText(offers),
+            AiSuggestions = BuildDashboardSuggestions(strongestCategory, sub.City, activeListings)
         };
     }
 
@@ -184,7 +259,7 @@ public class SubcontractorService : ISubcontractorService
     {
         var sub = await GetProfileAsync(userId);
         var list = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor).Include(a => a.Offer)
-            .Where(a => a.SubcontractorId == sub.Id && a.Status != "completed")
+            .Where(a => a.SubcontractorId == sub.Id && a.Status != nameof(AssignedJobStatus.Completed) && a.Status != "completed")
             .OrderByDescending(a => a.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         return list.Select(MapAssignedJob).ToList();
     }
@@ -193,7 +268,7 @@ public class SubcontractorService : ISubcontractorService
     {
         var sub = await GetProfileAsync(userId);
         var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer)
-            .Include(x => x.JobLogs).Include(x => x.JobReports)
+            .Include(x => x.JobWorkflowLogs).Include(x => x.JobReports)
             .FirstOrDefaultAsync(x => x.Id == id && x.SubcontractorId == sub.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
         return new AssignedJobDetailResponse
@@ -216,7 +291,7 @@ public class SubcontractorService : ISubcontractorService
             CreatedAt = a.CreatedAt,
             OfferPrice = a.Offer?.Price ?? 0,
             OfferCurrency = a.Offer?.Currency ?? "TRY",
-            Logs = a.JobLogs.OrderByDescending(l => l.CreatedAt).Select(MapJobLog).ToList(),
+            Logs = a.JobWorkflowLogs.OrderByDescending(l => l.CreatedAt).Select(MapWorkflowLog).ToList(),
             Reports = a.JobReports.OrderByDescending(r => r.CreatedAt).Select(r => new JobReportResponse { Id = r.Id, FileName = r.FileName, FileUrl = r.FileUrl, FileSize = r.FileSize, FileType = r.FileType, CreatedAt = r.CreatedAt }).ToList()
         };
     }
@@ -224,15 +299,20 @@ public class SubcontractorService : ISubcontractorService
     public async Task<AssignedJobResponse> UpdateActiveJobAsync(Guid userId, Guid id, UpdateAssignedJobRequest req)
     {
         var sub = await GetProfileAsync(userId);
-        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer)
+        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer).Include(x => x.JobWorkflowLogs)
             .FirstOrDefaultAsync(x => x.Id == id && x.SubcontractorId == sub.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
         if (req.Progress.HasValue) a.Progress = Math.Clamp(req.Progress.Value, 0, 90);
         if (req.Status != null)
         {
-            if (req.Status == "completed")
+            if (req.Status.Equals(nameof(AssignedJobStatus.Completed), StringComparison.OrdinalIgnoreCase) || req.Status == "completed")
                 throw new InvalidOperationException("İşi tamamlamak için bitiş onayı gönderin.");
-            a.Status = NormalizeSubcontractorStatus(req.Status);
+            var normalizedStatus = NormalizeSubcontractorStatus(req.Status);
+            if (normalizedStatus == AssignedJobStatus.InProgress.ToString())
+                throw new InvalidOperationException("Devam adımı için açıklama göndermeniz gerekir.");
+            if (normalizedStatus == AssignedJobStatus.FinishProofPending.ToString())
+                throw new InvalidOperationException("Bitiş adımı için fotoğrafla acente onayı göndermeniz gerekir.");
+            a.Status = normalizedStatus;
             a.Progress = ProgressForStatus(a.Status, a.Progress);
         }
         if (req.StartDate.HasValue) a.StartDate = req.StartDate;
@@ -242,7 +322,7 @@ public class SubcontractorService : ISubcontractorService
         // Log ekle
         if (req.Progress.HasValue)
         {
-            _db.JobLogs.Add(new JobLog { AssignedJobId = a.Id, CreatedBy = userId, Title = $"İlerleme güncellendi: %{req.Progress.Value}" });
+            _db.JobWorkflowLogs.Add(new JobWorkflowLog { AssignedJobId = a.Id, CreatedBy = userId, Title = $"İlerleme güncellendi: %{req.Progress.Value}" });
         }
         await _db.SaveChangesAsync();
         return MapAssignedJob(a);
@@ -251,24 +331,34 @@ public class SubcontractorService : ISubcontractorService
     public async Task<AssignedJobResponse> UpdateJobProgressAsync(Guid userId, Guid id, UpdateJobProgressRequest req)
     {
         var sub = await GetProfileAsync(userId);
-        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer)
+        var a = await _db.AssignedJobs.Include(x => x.JobListing).Include(x => x.Agent).Include(x => x.Subcontractor).Include(x => x.Offer).Include(x => x.JobWorkflowLogs)
             .FirstOrDefaultAsync(x => x.Id == id && x.SubcontractorId == sub.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
 
-        if (a.Status == "completed")
+        if (a.Status == AssignedJobStatus.Completed.ToString())
             throw new InvalidOperationException("Tamamlanan iş güncellenemez.");
 
         var status = NormalizeSubcontractorStatus(req.Status);
+        if (status == AssignedJobStatus.InProgress.ToString())
+        {
+            if (string.IsNullOrWhiteSpace(req.Note))
+                throw new InvalidOperationException("Devam adımı için açıklama zorunludur.");
+
+            var startApproved = a.JobWorkflowLogs.Any(l => l.Type == "start_proof" && l.ReviewStatus == "approved");
+            if (!startApproved)
+                throw new InvalidOperationException("Devam açıklaması için önce başlangıç fotoğrafı acente tarafından onaylanmalıdır.");
+        }
+
         a.Status = status;
-        a.Progress = ProgressForStatus(status, a.Progress);
+        a.Progress = 50;
         a.UpdatedAt = DateTime.UtcNow;
 
-        _db.JobLogs.Add(new JobLog
+        _db.JobWorkflowLogs.Add(new JobWorkflowLog
         {
             AssignedJobId = a.Id,
             CreatedBy = userId,
-            Type = "status",
-            Title = StatusTitle(status),
+            Type = "progress_note",
+            Title = "Devam açıklaması gönderildi",
             Description = req.Note?.Trim(),
             ReviewStatus = "none"
         });
@@ -280,66 +370,76 @@ public class SubcontractorService : ISubcontractorService
     public async Task<JobLogResponse> UploadPhotoLogAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType, string? description)
     {
         var sub = await GetProfileAsync(userId);
-        var assigned = await _db.AssignedJobs.Include(a => a.JobListing)
+        var assigned = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.JobWorkflowLogs)
             .FirstOrDefaultAsync(a => a.Id == assignedJobId && a.SubcontractorId == sub.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
 
-        if (assigned.Status == "completed")
+        if (assigned.Status == AssignedJobStatus.Completed.ToString())
             throw new InvalidOperationException("Tamamlanan işe süreç logu eklenemez.");
+        if (assigned.JobWorkflowLogs.Any(l => l.Type == "start_proof" && l.ReviewStatus == "pending"))
+            throw new InvalidOperationException("Başlangıç fotoğrafı zaten acente onayında bekliyor.");
+        if (assigned.JobWorkflowLogs.Any(l => l.Type == "start_proof" && l.ReviewStatus == "approved"))
+            throw new InvalidOperationException("Başlangıç fotoğrafı zaten onaylandı.");
 
-        assigned.Status = "in_progress";
-        assigned.Progress = Math.Max(assigned.Progress, 60);
+        assigned.Status = AssignedJobStatus.StartProofPending.ToString();
+        assigned.Progress = 0;
         assigned.UpdatedAt = DateTime.UtcNow;
 
-        var log = new JobLog
+        var log = new JobWorkflowLog
         {
             AssignedJobId = assigned.Id,
             CreatedBy = userId,
-            Type = "photo",
-            Title = "Başlangıç fotoğrafı yüklendi",
+            Type = "start_proof",
+            Title = "Başlangıç fotoğrafı onaya gönderildi",
             Description = description?.Trim(),
             FileName = fileName,
             FileUrl = fileUrl,
             FileSize = fileSize,
             FileType = fileType,
-            ReviewStatus = "none"
+            ReviewStatus = "pending"
         };
-        _db.JobLogs.Add(log);
+        _db.JobWorkflowLogs.Add(log);
 
         var agentUserId = await _db.AgentProfiles.Where(a => a.Id == assigned.AgentId).Select(a => a.UserId).FirstAsync();
         _db.Notifications.Add(new Notification
         {
             UserId = agentUserId,
-            Type = "JOB_LOG_ADDED",
-            Title = "Süreç Logu Eklendi",
-            Body = $"{assigned.JobListing.Title} için taşeron başlangıç fotoğrafı yükledi.",
+            Type = "JOB_START_PHOTO_APPROVAL_REQUESTED",
+            Title = "Başlangıç Fotoğrafı Onayı Bekliyor",
+            Body = $"{assigned.JobListing.Title} için taşeron başlangıç fotoğrafını onayınıza gönderdi.",
             Data = System.Text.Json.JsonSerializer.Serialize(new { assignedJobId, logId = log.Id })
         });
 
         await _db.SaveChangesAsync();
-        return MapJobLog(log);
+        return MapWorkflowLog(log);
     }
 
     public async Task<AssignedJobResponse> SubmitJobForCompletionAsync(Guid userId, Guid assignedJobId, string fileName, string fileUrl, long? fileSize, string? fileType, string? note)
     {
         var sub = await GetProfileAsync(userId);
-        var assigned = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor).Include(a => a.Offer)
+        var assigned = await _db.AssignedJobs.Include(a => a.JobListing).Include(a => a.Agent).Include(a => a.Subcontractor).Include(a => a.Offer).Include(a => a.JobWorkflowLogs)
             .FirstOrDefaultAsync(a => a.Id == assignedJobId && a.SubcontractorId == sub.Id)
             ?? throw new KeyNotFoundException("Atanmış iş bulunamadı.");
 
-        if (assigned.Status == "completed")
+        if (assigned.Status == AssignedJobStatus.Completed.ToString())
             throw new InvalidOperationException("İş zaten tamamlandı.");
+        if (!assigned.JobWorkflowLogs.Any(l => l.Type == "start_proof" && l.ReviewStatus == "approved"))
+            throw new InvalidOperationException("Bitiş fotoğrafı için önce başlangıç fotoğrafı acente tarafından onaylanmalıdır.");
+        if (!assigned.JobWorkflowLogs.Any(l => l.Type == "progress_note" && !string.IsNullOrWhiteSpace(l.Description)))
+            throw new InvalidOperationException("Bitiş fotoğrafı için önce devam açıklaması gönderilmelidir.");
+        if (assigned.JobWorkflowLogs.Any(l => l.Type == "finish_proof" && l.ReviewStatus == "pending"))
+            throw new InvalidOperationException("Bitiş talebi zaten acente onayında bekliyor.");
 
-        assigned.Status = "review";
-        assigned.Progress = Math.Max(assigned.Progress, 90);
+        assigned.Status = AssignedJobStatus.FinishProofPending.ToString();
+        assigned.Progress = 75;
         assigned.UpdatedAt = DateTime.UtcNow;
 
-        _db.JobLogs.Add(new JobLog
+        _db.JobWorkflowLogs.Add(new JobWorkflowLog
         {
             AssignedJobId = assigned.Id,
             CreatedBy = userId,
-            Type = "completion_request",
-            Title = "Bitti talebi gönderildi",
+            Type = "finish_proof",
+            Title = "Bitiş fotoğrafı onaya gönderildi",
             Description = note?.Trim(),
             FileName = fileName,
             FileUrl = fileUrl,
@@ -419,6 +519,181 @@ public class SubcontractorService : ISubcontractorService
                 Description = t.Description,
                 CreatedAt = t.CreatedAt
             }).ToList()
+        };
+    }
+
+    private static List<SubcontractorDashboardTaskResponse> BuildDashboardTasks(List<AssignedJob> assignedJobs, List<Offer> offers)
+    {
+        var tasks = new List<SubcontractorDashboardTaskResponse>();
+        var activeJobs = assignedJobs
+            .Where(a => !IsCompletedJob(a))
+            .OrderBy(a => EffectiveDueDate(a) ?? DateOnly.MaxValue)
+            .ThenByDescending(a => a.CreatedAt)
+            .ToList();
+
+        foreach (var job in activeJobs)
+        {
+            var startApproved = job.JobWorkflowLogs.Any(l => l.Type == "start_proof" && l.ReviewStatus == "approved");
+            var startPending = job.JobWorkflowLogs.Any(l => l.Type == "start_proof" && l.ReviewStatus == "pending");
+            var progressNoteExists = job.JobWorkflowLogs.Any(l => l.Type == "progress_note" && !string.IsNullOrWhiteSpace(l.Description));
+            var finishPending = job.JobWorkflowLogs.Any(l => l.Type == "finish_proof" && l.ReviewStatus == "pending");
+
+            if (!startApproved && !startPending)
+            {
+                tasks.Add(new SubcontractorDashboardTaskResponse
+                {
+                    Title = $"{job.JobListing?.Title ?? "Aktif iş"} için başlangıç fotoğrafı bekleniyor",
+                    Description = DueDateText(job),
+                    Type = "urgent",
+                    JobId = job.Id
+                });
+                continue;
+            }
+
+            if (startPending)
+            {
+                tasks.Add(new SubcontractorDashboardTaskResponse
+                {
+                    Title = $"{job.JobListing?.Title ?? "Aktif iş"} başlangıç onayında",
+                    Description = "Başlangıç fotoğrafı acente değerlendirmesinde",
+                    Type = "follow",
+                    JobId = job.Id
+                });
+                continue;
+            }
+
+            if (!progressNoteExists)
+            {
+                tasks.Add(new SubcontractorDashboardTaskResponse
+                {
+                    Title = $"{job.JobListing?.Title ?? "Aktif iş"} için devam açıklaması bekleniyor",
+                    Description = DueDateText(job),
+                    Type = "follow",
+                    JobId = job.Id
+                });
+                continue;
+            }
+
+            if (!finishPending)
+            {
+                tasks.Add(new SubcontractorDashboardTaskResponse
+                {
+                    Title = $"{job.JobListing?.Title ?? "Aktif iş"} için bitiş fotoğrafı bekleniyor",
+                    Description = DueDateText(job),
+                    Type = "urgent",
+                    JobId = job.Id
+                });
+            }
+            else
+            {
+                tasks.Add(new SubcontractorDashboardTaskResponse
+                {
+                    Title = $"{job.JobListing?.Title ?? "Aktif iş"} bitiş onayında",
+                    Description = "Bitiş fotoğrafı acente değerlendirmesinde",
+                    Type = "follow",
+                    JobId = job.Id
+                });
+            }
+        }
+
+        var pendingOffers = offers.Count(o => o.Status == "pending");
+        if (pendingOffers > 0)
+        {
+            tasks.Add(new SubcontractorDashboardTaskResponse
+            {
+                Title = $"Bekleyen {pendingOffers} teklifin durumunu takip et",
+                Description = "Tekliflerim sayfasından son durumları görebilirsin",
+                Type = "opportunity"
+            });
+        }
+
+        return tasks.Take(5).ToList();
+    }
+
+    private static string? ResolveStrongestCategory(List<Offer> offers, List<AssignedJob> assignedJobs)
+    {
+        var acceptedCategory = offers
+            .Where(o => o.Status == "accepted" && !string.IsNullOrWhiteSpace(o.JobListing?.Category))
+            .GroupBy(o => o.JobListing.Category)
+            .OrderByDescending(g => g.Count())
+            .ThenBy(g => g.Key)
+            .Select(g => g.Key)
+            .FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(acceptedCategory)) return acceptedCategory;
+
+        return assignedJobs
+            .Where(a => !string.IsNullOrWhiteSpace(a.JobListing?.Category))
+            .GroupBy(a => a.JobListing.Category)
+            .OrderByDescending(g => g.Count())
+            .ThenBy(g => g.Key)
+            .Select(g => g.Key)
+            .FirstOrDefault();
+    }
+
+    private static string? ResolveAverageResponseTimeText(List<Offer> offers)
+    {
+        var respondedOffers = offers
+            .Where(o => o.Status is "accepted" or "rejected" && o.UpdatedAt >= o.CreatedAt)
+            .Select(o => (o.UpdatedAt - o.CreatedAt).TotalDays)
+            .ToList();
+
+        if (respondedOffers.Count == 0) return null;
+
+        var averageDays = respondedOffers.Average();
+        if (averageDays < 0.1) return "Aynı gün";
+
+        return $"{averageDays:0.0} Gün";
+    }
+
+    private static List<string> BuildDashboardSuggestions(string? strongestCategory, string? city, List<JobListing> activeListings)
+    {
+        var suggestions = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(strongestCategory))
+        {
+            var categoryListingCount = activeListings.Count(j => j.Category == strongestCategory);
+            suggestions.Add(categoryListingCount > 0
+                ? $"{strongestCategory} kategorisinde {categoryListingCount} aktif ilan var; geçmiş performansın bu alanda güçlü."
+                : $"{strongestCategory} kategorisinde kabul oranınız güçlü görünüyor.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(city))
+        {
+            var localListingCount = activeListings.Count(j => !string.IsNullOrWhiteSpace(j.Location) && j.Location.Contains(city, StringComparison.OrdinalIgnoreCase));
+            if (localListingCount > 0)
+                suggestions.Add($"{city} çevresinde {localListingCount} yeni ilan var.");
+        }
+
+        var highBudgetListingCount = activeListings.Count(j => (j.BudgetMax ?? j.BudgetMin ?? 0) > 0);
+        if (highBudgetListingCount > 0)
+            suggestions.Add($"Bütçesi tanımlı {highBudgetListingCount} aktif ilan bugün incelemeye uygun.");
+
+        if (suggestions.Count == 0)
+            suggestions.Add("Yeni ilanlar yayınlandıkça profilinize uygun öneriler burada görünecek.");
+
+        return suggestions.Take(3).ToList();
+    }
+
+    private static bool IsCompletedJob(AssignedJob job)
+        => job.Status == AssignedJobStatus.Completed.ToString() || job.Status == "completed";
+
+    private static int Percentage(int value, int total)
+        => total <= 0 ? 0 : (int)Math.Round(value * 100m / total);
+
+    private static string DueDateText(AssignedJob job)
+    {
+        var dueDate = EffectiveDueDate(job);
+        if (!dueDate.HasValue) return "Teslim tarihi verisi yok";
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var daysLeft = dueDate.Value.DayNumber - today.DayNumber;
+
+        return daysLeft switch
+        {
+            < 0 => $"{Math.Abs(daysLeft)} gün gecikmiş",
+            0 => "Bugün teslim günü",
+            _ => $"Teslime {daysLeft} gün kaldı"
         };
     }
 
@@ -513,17 +788,35 @@ public class SubcontractorService : ISubcontractorService
         OfferCurrency = a.Offer?.Currency ?? "TRY"
     };
 
-    private static DateOnly EffectiveStartDate(AssignedJob a)
+    private static DateOnly? EffectiveStartDate(AssignedJob a)
         => a.StartDate ?? DateOnly.FromDateTime(a.CreatedAt);
 
     private static DateOnly? EffectiveDueDate(AssignedJob a)
     {
         if (a.DueDate.HasValue) return a.DueDate;
         if (a.Offer?.EstimatedDays is not int estimatedDays) return null;
-        return EffectiveStartDate(a).AddDays(estimatedDays);
+        return EffectiveStartDate(a)?.AddDays(estimatedDays);
     }
 
     private static JobLogResponse MapJobLog(JobLog l) => new()
+    {
+        Id = l.Id,
+        Title = l.Title,
+        Description = l.Description,
+        Type = l.Type,
+        FileUrl = l.FileUrl,
+        FileName = l.FileName,
+        FileType = l.FileType,
+        FileSize = l.FileSize,
+        ReviewStatus = l.ReviewStatus,
+        CreatedBy = l.CreatedBy,
+        ReviewedBy = l.ReviewedBy,
+        ReviewedAt = l.ReviewedAt,
+        ReviewNote = l.ReviewNote,
+        CreatedAt = l.CreatedAt
+    };
+
+    private static JobLogResponse MapWorkflowLog(JobWorkflowLog l) => new()
     {
         Id = l.Id,
         Title = l.Title,
@@ -546,9 +839,9 @@ public class SubcontractorService : ISubcontractorService
         var normalized = status.Trim().ToLowerInvariant();
         return normalized switch
         {
-            "started" or "basladi" or "başladı" => "started",
-            "in_progress" or "devam" or "devam_ediyor" or "devam ediyor" => "in_progress",
-            "review" => "review",
+            "started" or "basladi" or "başladı" => AssignedJobStatus.Started.ToString(),
+            "inprogress" or "in_progress" or "devam" or "devam_ediyor" or "devam ediyor" => AssignedJobStatus.InProgress.ToString(),
+            "finishproofpending" or "review" => AssignedJobStatus.FinishProofPending.ToString(),
             "completed" or "bitti" => throw new InvalidOperationException("Bitti durumu acente onayı gerektirir."),
             _ => throw new InvalidOperationException("Geçersiz iş durumu.")
         };
