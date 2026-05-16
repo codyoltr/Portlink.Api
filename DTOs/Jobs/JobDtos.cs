@@ -183,3 +183,37 @@ public class SubcontractorDashboardStatsResponse
     public decimal TotalEarnings { get; set; }
     public decimal PendingEarnings { get; set; }
 }
+
+public class SubcontractorDashboardSummaryResponse
+{
+    public int TotalOffers { get; set; }
+    public int PendingOffers { get; set; }
+    public int ActiveJobs { get; set; }
+    public decimal MonthlyEarnings { get; set; }
+    public decimal TotalReceivable { get; set; }
+    public decimal AvailableBalance { get; set; }
+    public decimal PendingEarnings { get; set; }
+    public List<SubcontractorDashboardTaskResponse> TodayTasks { get; set; } = new();
+    public SubcontractorOfferPerformanceResponse OfferPerformance { get; set; } = new();
+    public string? StrongestCategory { get; set; }
+    public string? AverageResponseTimeText { get; set; }
+    public List<string> AiSuggestions { get; set; } = new();
+}
+
+public class SubcontractorDashboardTaskResponse
+{
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Type { get; set; } = "info";
+    public Guid? JobId { get; set; }
+}
+
+public class SubcontractorOfferPerformanceResponse
+{
+    public int Sent { get; set; }
+    public int Accepted { get; set; }
+    public int Rejected { get; set; }
+    public int AcceptanceRate { get; set; }
+    public int PendingRate { get; set; }
+    public int CompletedJobsRate { get; set; }
+}

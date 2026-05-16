@@ -10,6 +10,7 @@ public interface ISubcontractorService
     Task<SubcontractorProfileResponse> GetSubcontractorProfileAsync(Guid userId);
     Task<SubcontractorProfileResponse> UpdateSubcontractorProfileAsync(Guid userId, UpdateSubcontractorProfileRequest req);
     Task<SubcontractorDashboardStatsResponse> GetDashboardStatsAsync(Guid userId);
+    Task<SubcontractorDashboardSummaryResponse> GetDashboardSummaryAsync(Guid userId);
     Task<List<JobListingResponse>> ListActiveJobsAsync(string? category, string? location, string? search, int page, int pageSize);
     Task<JobListingDetailResponse> GetJobDetailAsync(Guid jobId);
     Task<OfferResponse> CreateOfferAsync(Guid userId, Guid jobId, CreateOfferRequest req);

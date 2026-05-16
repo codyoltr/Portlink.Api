@@ -23,9 +23,9 @@ public class AssignedJob
     /// <summary>0-100 yüzde tamamlanma</summary>
     public int Progress { get; set; } = 0;
 
-    /// <summary>'started' | 'in_progress' | 'review' | 'completed'</summary>
+    /// <summary>Assigned | StartProofPending | Started | InProgress | FinishProofPending | Completed</summary>
     [MaxLength(30)]
-    public string Status { get; set; } = "started";
+    public string Status { get; set; } = AssignedJobStatus.Assigned.ToString();
 
     public DateOnly? StartDate { get; set; }
     public DateOnly? DueDate { get; set; }
@@ -35,6 +35,7 @@ public class AssignedJob
 
     // Navigation
     public ICollection<JobLog> JobLogs { get; set; } = new List<JobLog>();
+    public ICollection<JobWorkflowLog> JobWorkflowLogs { get; set; } = new List<JobWorkflowLog>();
     public ICollection<JobReport> JobReports { get; set; } = new List<JobReport>();
     public ICollection<Message> Messages { get; set; } = new List<Message>();
     public ICollection<WalletTransaction> WalletTransactions { get; set; } = new List<WalletTransaction>();

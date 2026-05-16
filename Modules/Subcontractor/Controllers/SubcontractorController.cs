@@ -57,20 +57,19 @@ public class SubcontractorController : ControllerBase
         if (ext is not ("jpg" or "jpeg" or "png" or "webp"))
             return BadRequest(ApiResponse.Fail("Yalnızca JPG, PNG veya WebP yüklenebilir."));
 
-        try
+        var profile = await _svc.GetSubcontractorProfileAsync(UserId);
+        var storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
         {
-            var storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
-            {
-                File = file,
-                FileCategory = StorageFileCategory.Image,
-                RelatedEntityType = StorageRelatedEntityType.User,
-                RelatedEntityId = UserId
-            }, cancellationToken);
+            File = file,
+            FileCategory = StorageFileCategory.Image,
+            RelatedEntityType = StorageRelatedEntityType.SubcontractorProfile,
+            RelatedEntityId = profile.Id,
+            Description = "Taşeron profil logosu"
+        }, cancellationToken);
 
-            var result = await _svc.UploadLogoAsync(UserId, storedFile.Id);
-            return Ok(ApiResponse<string>.Ok(result, "Logo başarıyla yüklendi."));
-        }
-        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
+        var logoUrl = storedFile.PreviewUrl;
+        await _svc.UploadLogoAsync(UserId, logoUrl);
+        return Ok(ApiResponse<string>.Ok(logoUrl, "Logo başarıyla yüklendi."));
     }
 
     // GET /api/subcontractor/dashboard/stats
@@ -79,6 +78,14 @@ public class SubcontractorController : ControllerBase
     {
         var result = await _svc.GetDashboardStatsAsync(UserId);
         return Ok(ApiResponse<SubcontractorDashboardStatsResponse>.Ok(result));
+    }
+
+    // GET /api/subcontractor/dashboard/summary
+    [HttpGet("dashboard/summary")]
+    public async Task<IActionResult> DashboardSummary()
+    {
+        var result = await _svc.GetDashboardSummaryAsync(UserId);
+        return Ok(ApiResponse<SubcontractorDashboardSummaryResponse>.Ok(result));
     }
 
     [HttpGet("jobs")]
@@ -98,6 +105,7 @@ public class SubcontractorController : ControllerBase
             return Ok(ApiResponse<JobListingDetailResponse>.Ok(result));
         }
         catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
+        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
     }
 
     [HttpPost("jobs/{id:guid}/offer")]
@@ -176,7 +184,7 @@ public class SubcontractorController : ControllerBase
     // POST /api/subcontractor/active-jobs/:id/logs/photo
     [HttpPost("active-jobs/{id:guid}/logs/photo")]
     [Consumes("multipart/form-data")]
-    public async Task<IActionResult> UploadPhotoLog(Guid id)
+    public async Task<IActionResult> UploadPhotoLog(Guid id, CancellationToken cancellationToken)
     {
         var file = Request.Form.Files.GetFile("file") ?? Request.Form.Files.FirstOrDefault();
         var description = Request.Form["description"].FirstOrDefault();
@@ -190,26 +198,37 @@ public class SubcontractorController : ControllerBase
         if (ext is not ("jpg" or "jpeg" or "png" or "webp"))
             return BadRequest(ApiResponse.Fail("Yalnızca JPG, PNG veya WebP yüklenebilir."));
 
-        var uploads = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "job-logs");
-        Directory.CreateDirectory(uploads);
-        var fileName = $"{Guid.NewGuid()}.{ext}";
-        var filePath = Path.Combine(uploads, fileName);
-        await using var stream = System.IO.File.Create(filePath);
-        await file.CopyToAsync(stream);
-
+        StorageFileResponse? storedFile = null;
         try
         {
-            var result = await _svc.UploadPhotoLogAsync(UserId, id, file.FileName, $"/uploads/job-logs/{fileName}", file.Length, ext, description);
-            return StatusCode(201, ApiResponse<JobLogResponse>.Ok(result, "Başlangıç fotoğrafı süreç loglarına eklendi."));
+            storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
+            {
+                File = file,
+                FileCategory = StorageFileCategory.Image,
+                RelatedEntityType = StorageRelatedEntityType.AssignedJob,
+                RelatedEntityId = id,
+                Description = description
+            }, cancellationToken);
+
+            var result = await _svc.UploadPhotoLogAsync(UserId, id, storedFile.OriginalFileName, storedFile.PreviewUrl, storedFile.SizeInBytes, storedFile.FileExtension, description);
+            return StatusCode(201, ApiResponse<JobLogResponse>.Ok(result, "Başlangıç fotoğrafı acente onayına gönderildi."));
         }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
-        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
+        catch (KeyNotFoundException ex)
+        {
+            if (storedFile != null) await SafeDeleteStoredFileAsync(storedFile.Id, cancellationToken);
+            return NotFound(ApiResponse.Fail(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            if (storedFile != null) await SafeDeleteStoredFileAsync(storedFile.Id, cancellationToken);
+            return BadRequest(ApiResponse.Fail(ex.Message));
+        }
     }
 
     // POST /api/subcontractor/active-jobs/:id/submit-completion
     [HttpPost("active-jobs/{id:guid}/submit-completion")]
     [Consumes("multipart/form-data")]
-    public async Task<IActionResult> SubmitJobForCompletion(Guid id)
+    public async Task<IActionResult> SubmitJobForCompletion(Guid id, CancellationToken cancellationToken)
     {
         var file = Request.Form.Files.GetFile("file") ?? Request.Form.Files.FirstOrDefault();
         var description = Request.Form["description"].FirstOrDefault();
@@ -223,20 +242,31 @@ public class SubcontractorController : ControllerBase
         if (ext is not ("jpg" or "jpeg" or "png" or "webp"))
             return BadRequest(ApiResponse.Fail("Yalnızca JPG, PNG veya WebP yüklenebilir."));
 
-        var uploads = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "job-logs");
-        Directory.CreateDirectory(uploads);
-        var fileName = $"{Guid.NewGuid()}.{ext}";
-        var filePath = Path.Combine(uploads, fileName);
-        await using var stream = System.IO.File.Create(filePath);
-        await file.CopyToAsync(stream);
-
+        StorageFileResponse? storedFile = null;
         try
         {
-            var result = await _svc.SubmitJobForCompletionAsync(UserId, id, file.FileName, $"/uploads/job-logs/{fileName}", file.Length, ext, description);
+            storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
+            {
+                File = file,
+                FileCategory = StorageFileCategory.Image,
+                RelatedEntityType = StorageRelatedEntityType.AssignedJob,
+                RelatedEntityId = id,
+                Description = description
+            }, cancellationToken);
+
+            var result = await _svc.SubmitJobForCompletionAsync(UserId, id, storedFile.OriginalFileName, storedFile.PreviewUrl, storedFile.SizeInBytes, storedFile.FileExtension, description);
             return Ok(ApiResponse<AssignedJobResponse>.Ok(result, "İş bitiş onayı acenteye gönderildi."));
         }
-        catch (KeyNotFoundException ex) { return NotFound(ApiResponse.Fail(ex.Message)); }
-        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
+        catch (KeyNotFoundException ex)
+        {
+            if (storedFile != null) await SafeDeleteStoredFileAsync(storedFile.Id, cancellationToken);
+            return NotFound(ApiResponse.Fail(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            if (storedFile != null) await SafeDeleteStoredFileAsync(storedFile.Id, cancellationToken);
+            return BadRequest(ApiResponse.Fail(ex.Message));
+        }
     }
 
     // POST /api/subcontractor/active-jobs/:id/reports
@@ -304,9 +334,21 @@ public class SubcontractorController : ControllerBase
 
         return extension switch
         {
-            "jpg" or "jpeg" or "png" => StorageFileCategory.Image,
+            "jpg" or "jpeg" or "png" or "webp" => StorageFileCategory.Image,
             "mp4" or "mov" or "webm" => StorageFileCategory.Video,
             _ => StorageFileCategory.Document
         };
+    }
+
+    private async Task SafeDeleteStoredFileAsync(Guid storageFileId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _storageService.DeleteFileAsync(UserId, storageFileId, cancellationToken);
+        }
+        catch
+        {
+            // Workflow validation failed after upload; cleanup is best effort.
+        }
     }
 }

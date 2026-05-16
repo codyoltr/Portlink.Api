@@ -33,14 +33,15 @@ public class StorageSettings
             PresignedUrlExpiresInSeconds = ReadInt(configuration, section, "PresignedUrlExpiresInSeconds", "AWS_S3_PRESIGNED_URL_EXPIRES_IN_SECONDS", 300),
             MaxDocumentSizeMb = ReadInt(configuration, section, "MaxDocumentSizeMb", "STORAGE_MAX_DOCUMENT_SIZE_MB", 25),
             MaxVideoSizeMb = ReadInt(configuration, section, "MaxVideoSizeMb", "STORAGE_MAX_VIDEO_SIZE_MB", 100),
-            AllowedDocumentExtensions = ReadList(configuration, section, "AllowedDocumentExtensions", "STORAGE_ALLOWED_DOCUMENT_EXTENSIONS", new[] { "pdf", "docx", "jpg", "jpeg", "png" }),
+            AllowedDocumentExtensions = ReadList(configuration, section, "AllowedDocumentExtensions", "STORAGE_ALLOWED_DOCUMENT_EXTENSIONS", new[] { "pdf", "docx", "jpg", "jpeg", "png", "webp" }),
             AllowedVideoExtensions = ReadList(configuration, section, "AllowedVideoExtensions", "STORAGE_ALLOWED_VIDEO_EXTENSIONS", new[] { "mp4", "mov", "webm" }),
             AllowedDocumentMimeTypes = ReadList(configuration, section, "AllowedDocumentMimeTypes", "STORAGE_ALLOWED_DOCUMENT_MIME_TYPES", new[]
             {
                 "application/pdf",
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 "image/jpeg",
-                "image/png"
+                "image/png",
+                "image/webp"
             }),
             AllowedVideoMimeTypes = ReadList(configuration, section, "AllowedVideoMimeTypes", "STORAGE_ALLOWED_VIDEO_MIME_TYPES", new[]
             {

@@ -55,20 +55,19 @@ public class AgentController : ControllerBase
         if (ext is not ("jpg" or "jpeg" or "png" or "webp"))
             return BadRequest(ApiResponse.Fail("Yalnızca JPG, PNG veya WebP dosyaları kabul edilir."));
 
-        try
+        var profile = await _svc.GetProfileAsync(UserId);
+        var storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
         {
-            var storedFile = await _storageService.UploadFileAsync(UserId, new UploadStorageFileRequest
-            {
-                File = file,
-                FileCategory = StorageFileCategory.Image,
-                RelatedEntityType = StorageRelatedEntityType.User,
-                RelatedEntityId = UserId
-            }, cancellationToken);
+            File = file,
+            FileCategory = StorageFileCategory.Image,
+            RelatedEntityType = StorageRelatedEntityType.AgentProfile,
+            RelatedEntityId = profile.Id,
+            Description = "Acente profil logosu"
+        }, cancellationToken);
 
-            var result = await _svc.UploadLogoAsync(UserId, storedFile.Id);
-            return Ok(ApiResponse<string>.Ok(result, "Logo güncellendi."));
-        }
-        catch (InvalidOperationException ex) { return BadRequest(ApiResponse.Fail(ex.Message)); }
+        var logoUrl = storedFile.PreviewUrl;
+        var result = await _svc.UploadLogoAsync(UserId, logoUrl);
+        return Ok(ApiResponse<string>.Ok(result, "Logo güncellendi."));
     }
 
     // GET /api/agent/dashboard/stats

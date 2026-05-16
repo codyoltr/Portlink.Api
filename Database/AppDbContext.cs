@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<Offer> Offers => Set<Offer>();
     public DbSet<AssignedJob> AssignedJobs => Set<AssignedJob>();
     public DbSet<JobLog> JobLogs => Set<JobLog>();
+    public DbSet<JobWorkflowLog> JobWorkflowLogs => Set<JobWorkflowLog>();
     public DbSet<JobReport> JobReports => Set<JobReport>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
@@ -164,6 +165,27 @@ public class AppDbContext : DbContext
         {
             e.HasOne(l => l.AssignedJob)
              .WithMany(a => a.JobLogs)
+             .HasForeignKey(l => l.AssignedJobId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(l => l.Creator)
+             .WithMany()
+             .HasForeignKey(l => l.CreatedBy)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(l => l.Reviewer)
+             .WithMany()
+             .HasForeignKey(l => l.ReviewedBy)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasIndex(l => new { l.AssignedJobId, l.ReviewStatus });
+        });
+
+        // ── JobWorkflowLog ────────────────────────────────────
+        modelBuilder.Entity<JobWorkflowLog>(e =>
+        {
+            e.HasOne(l => l.AssignedJob)
+             .WithMany(a => a.JobWorkflowLogs)
              .HasForeignKey(l => l.AssignedJobId)
              .OnDelete(DeleteBehavior.Cascade);
 
