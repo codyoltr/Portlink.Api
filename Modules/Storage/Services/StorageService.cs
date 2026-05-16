@@ -369,7 +369,7 @@ public class StorageService : IStorageService
             StorageRelatedEntityType.User => entity.RelatedEntityId == currentUser.UserId,
             StorageRelatedEntityType.AgentProfile => currentUser.Role == AgentRole && entity.RelatedEntityId == currentUser.AgentProfileId,
             StorageRelatedEntityType.SubcontractorProfile => currentUser.Role == SubcontractorRole && entity.RelatedEntityId == currentUser.SubcontractorProfileId,
-            StorageRelatedEntityType.JobListing => await CanAccessJobListingAsync(currentUser, entity.RelatedEntityId, cancellationToken),
+            StorageRelatedEntityType.JobListing => await CanAccessJobListingAsync(currentUser, entity, cancellationToken),
             StorageRelatedEntityType.Offer => await CanAccessOfferAsync(currentUser, entity.RelatedEntityId, cancellationToken),
             StorageRelatedEntityType.AssignedJob => await CanAccessAssignedJobAsync(currentUser, entity.RelatedEntityId, cancellationToken),
             StorageRelatedEntityType.Conversation => await CanAccessConversationAsync(currentUser, entity.RelatedEntityId, cancellationToken),
@@ -511,6 +511,44 @@ public class StorageService : IStorageService
         {
             throw new UnauthorizedAccessException("Bu kayit ile dosya iliskilendirme yetkiniz yok.");
         }
+    }
+
+    private async Task<bool> CanAccessJobListingAsync(CurrentStorageUser currentUser, StorageFile entity, CancellationToken cancellationToken)
+    {
+        var jobListingId = entity.RelatedEntityId;
+
+        if (!jobListingId.HasValue)
+        {
+            return false;
+        }
+
+        if (currentUser.Role == AgentRole && currentUser.AgentProfileId.HasValue)
+        {
+            return await _db.JobListings.AnyAsync(
+                       x => x.Id == jobListingId.Value && x.AgentId == currentUser.AgentProfileId.Value,
+                       cancellationToken)
+                   || await _db.JobListings.AnyAsync(
+                       x => x.Id == jobListingId.Value &&
+                            x.Status == "active" &&
+                            x.ListingImageStorageFileId == entity.Id &&
+                            entity.FileCategory == StorageFileCategory.Image,
+                       cancellationToken);
+        }
+
+        if (currentUser.Role == SubcontractorRole && currentUser.SubcontractorProfileId.HasValue)
+        {
+            return await _db.JobListings.AnyAsync(
+                       x => x.Id == jobListingId.Value && x.Status == "active",
+                       cancellationToken)
+                   || await _db.Offers.AnyAsync(
+                       x => x.JobId == jobListingId.Value && x.SubcontractorId == currentUser.SubcontractorProfileId.Value,
+                       cancellationToken)
+                   || await _db.AssignedJobs.AnyAsync(
+                       x => x.JobId == jobListingId.Value && x.SubcontractorId == currentUser.SubcontractorProfileId.Value,
+                       cancellationToken);
+        }
+
+        return false;
     }
 
     private async Task<bool> CanAccessJobListingAsync(CurrentStorageUser currentUser, Guid? jobListingId, CancellationToken cancellationToken)
